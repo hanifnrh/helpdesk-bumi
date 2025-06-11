@@ -1,32 +1,30 @@
-// src/types/ticket.ts
 export interface TicketFormData {
   branch: string;
   services: string;
   category: string;
-  subCategory: string;
-  network: string;
+  subcategory?: string;
+  network?: string;
   subject: string;
   description: string;
-  ticketFile: File | null;
-  title: string;
   priority: string;
-  tags: string[];
+  tags?: string;
 }
 
 export interface Ticket {
   id: string;
   created_at: string;
-  branch: number;
-  category: number;
-  services: number;
-  subcategory: number;
-  network: number;
+  title: string;
   subject: string;
   description: string;
+  branch: number | { id: number; name: string };
+  category: number | { id: number; name: string };
+  services: number | { id: number; name: string };
+  subcategory: number | { id: number; name: string } | null;
+  network: number | { id: number; name: string } | null;
+  priority: number | { id: number; name: string };
+  status: number | { id: number; name: string };
+  tags: string | null;
   attachment: string | null;
-  priority: number;
-  tags: string;
-  status: number;
-  assignee: number | null;
-  profile: string;
+  assignee: number | null | { id: number; name: string };
+  profile: string | { id: string; name: string };
 }

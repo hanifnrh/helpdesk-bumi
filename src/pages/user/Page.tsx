@@ -12,15 +12,24 @@ import { useTickets } from "@/hooks/useTickets";
 import { Ticket } from "@/types/ticket";
 import { LogOut, Plus, Ticket as TicketIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const UserDashboard = () => {
   const { user, logout } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
-  const { tickets, loading, createTicket, getTicketsByUser } = useTickets();
+  const {
+    tickets,
+    loading: ticketsLoading,
+    createTicket,
+    getTicketsByUser,
+    dropdownOptions,
+  } = useTickets();
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tickets");
+  const navigate = useNavigate();
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
@@ -37,14 +46,29 @@ const UserDashboard = () => {
         ticket.description
           .toLowerCase()
           .includes(filters.search.toLowerCase()) ||
-        ticket.reporter.toLowerCase().includes(filters.search.toLowerCase());
+        (typeof ticket.profile === "object"
+          ? ticket.profile.name
+              .toLowerCase()
+              .includes(filters.search.toLowerCase())
+          : false);
 
       const matchesStatus =
-        filters.status === "all" || ticket.status === filters.status;
+        filters.status === "all" ||
+        (typeof ticket.status === "object"
+          ? ticket.status.name === filters.status
+          : ticket.status.toString() === filters.status);
+
       const matchesPriority =
-        filters.priority === "all" || ticket.priority === filters.priority;
+        filters.priority === "all" ||
+        (typeof ticket.priority === "object"
+          ? ticket.priority.name === filters.priority
+          : ticket.priority.toString() === filters.priority);
+
       const matchesCategory =
-        filters.category === "all" || ticket.category === filters.category;
+        filters.category === "all" ||
+        (typeof ticket.category === "object"
+          ? ticket.category.name === filters.category
+          : ticket.category.toString() === filters.category);
 
       return (
         matchesSearch && matchesStatus && matchesPriority && matchesCategory
@@ -52,20 +76,34 @@ const UserDashboard = () => {
     });
   }, [userTickets, filters]);
 
-  const handleCreateTicket = (ticketData: any) => {
-    const ticketWithUser = {
-      ...ticketData,
-      reporter: user?.name || "Unknown",
-      reporterEmail: user?.email || "",
-      reporterPhone: user?.phone || "",
-      reporterId: user?.id || "",
-    };
-    createTicket(ticketWithUser);
-    toast({
-      title: "Ticket Created",
-      description: "Your ticket has been successfully created.",
-    });
-    setActiveTab("tickets");
+  // Update the handleCreateTicket function in UserDashboard
+  const handleCreateTicket = async (ticketData: any) => {
+    setLoading(true);
+    try {
+      // Add profile ID to the ticket data
+      const ticketWithProfile = {
+        ...ticketData,
+        profile: profile?.id,
+        title: ticketData.subject, // Use subject as title
+      };
+
+      const newTicket = await createTicket(ticketWithProfile);
+      toast({
+        title: "Success",
+        description: "Ticket created successfully.",
+        variant: "default",
+      });
+      navigate(`/tickets/${newTicket.id}`);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create ticket.",
+        variant: "destructive",
+      });
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTicketClick = (ticket: Ticket) => {
@@ -111,7 +149,7 @@ const UserDashboard = () => {
             <div className="text-right">
               <p className="text-sm text-gray-600">Welcome back,</p>
               <p>{profile?.name}</p>
-              <p>{profile?.role}</p>
+              <p>User</p>
             </div>
             <Button
               variant="outline"
@@ -202,7 +240,11 @@ const UserDashboard = () => {
           </TabsContent>
 
           <TabsContent value="create">
-            <TicketForm onSubmit={handleCreateTicket} loading={loading} />
+            <TicketForm
+              onSubmit={handleCreateTicket}
+              loading={loading}
+              dropdownOptions={dropdownOptions}
+            />
           </TabsContent>
         </Tabs>
 

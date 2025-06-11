@@ -1,416 +1,304 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+// src/components/TicketForm.tsx
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/utils/supabase";
+import { TicketFormData } from "@/types/ticket";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useProfile } from "@/hooks/useProfile";
-import { fetchTicketOptions } from "@/lib/utils/ticketOptions";
-import { Plus, Upload, X } from "lucide-react";
-import { useEffect, useState } from "react";
-
-interface TicketFormData {
-  branch: string;
-  services: string;
-  category: string;
-  subCategory: string;
-  network: string;
-  subject: string;
-  description: string;
-  ticketFile: File | null;
-  title: string;
-  priority: string;
-  tags: string[];
-}
+} from "./ui/select";
+import { Textarea } from "./ui/textarea";
 
 interface TicketFormProps {
-  onSubmit: (ticket: TicketFormData) => void;
-  loading?: boolean;
+  onSubmit: (data: TicketFormData) => Promise<void>;
+  loading: boolean;
+  dropdownOptions: {
+    branches: { id: number; name: string }[];
+    categories: { id: number; name: string }[];
+    services: { id: number; name: string }[];
+    subcategories: { id: number; name: string; category_id?: number }[];
+    networks: { id: number; name: string }[];
+    priorities: { id: number; name: string; level?: number }[];
+  };
 }
 
-export const TicketForm = ({ onSubmit, loading }: TicketFormProps) => {
-  const { profile } = useProfile();
-  const [options, setOptions] = useState({
-    branches: [],
-    categories: [],
-    services: [],
-    subcategories: [],
-    networks: [],
-    priorities: [],
-    statuses: [],
-    assignees: [],
-  });
-  const [formData, setFormData] = useState<TicketFormData>({
-    branch: "",
-    services: "",
-    category: "",
-    subCategory: "",
-    network: "",
-    subject: "",
-    description: "",
-    ticketFile: null,
-    title: "",
-    priority: "",
-    tags: [],
-  });
-  const [tagInput, setTagInput] = useState("");
+export const TicketForm = ({
+  onSubmit,
+  loading,
+  dropdownOptions,
+}: TicketFormProps) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<TicketFormData>();
+  const { toast } = useToast();
+  const [file, setFile] = useState<File | null>(null);
+  const selectedCategory = watch("category");
 
-  useEffect(() => {
-    const loadOptions = async () => {
-      const fetchedOptions = await fetchTicketOptions();
-      setOptions(fetchedOptions);
-      // Set default priority to "Medium" if available
-      const mediumPriority = fetchedOptions.priorities.find(
-        (p) => p.name.toLowerCase() === "medium"
-      );
-      if (mediumPriority) {
-        setFormData((prev) => ({ ...prev, priority: mediumPriority.id }));
-      }
-    };
-    loadOptions();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!profile) {
-      console.error("User profile not available");
-      return;
-    }
-
-    // Find the default "Open" status
-    const openStatus = options.statuses.find((s) => s.name === "Open");
-    if (!openStatus) {
-      console.error('Default "Open" status not found');
-      return;
-    }
-
-    const ticketData: TicketFormData = {
-      branch: formData.branch,
-      services: formData.services,
-      category: formData.category,
-      subCategory: formData.subCategory,
-      network: formData.network,
-      subject: formData.subject,
-      description: formData.description,
-      ticketFile: formData.ticketFile,
-      title: formData.title,
-      priority: formData.priority,
-      tags: formData.tags,
-    };
-
-    onSubmit(ticketData);
-  };
+  // Filter subcategories based on selected category
+  const filteredSubcategories = dropdownOptions.subcategories.filter(
+    (subcategory) => subcategory.category_id === Number(selectedCategory)
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFormData((prev) => ({ ...prev, ticketFile: file }));
-  };
-
-  const addTag = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim()],
-      }));
-      setTagInput("");
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((tag) => tag !== tagToRemove),
-    }));
+  const onSubmitHandler = async (data: TicketFormData) => {
+    try {
+      let attachmentUrl = null;
+
+      if (file) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("attachment")
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("attachment").getPublicUrl(filePath);
+
+        attachmentUrl = publicUrl;
+      }
+
+      const ticketData = {
+        ...data,
+        attachment: attachmentUrl,
+        status: 1, // Default status (open)
+      };
+
+      await onSubmit(ticketData);
+    } catch (error) {
+      console.error("Error submitting ticket:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create ticket",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold text-gray-900">
-          Create New Ticket
-        </CardTitle>
-        <p className="text-sm text-gray-600">
-          Ticket code will be auto-generated
-        </p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Branch and Services */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="branch">Branch *</Label>
-              <Select
-                value={formData.branch}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, branch: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select branch" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  {options.branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="services">Services *</Label>
-              <Select
-                value={formData.services}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, services: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="IT Support">IT Support</SelectItem>
-                  <SelectItem value="Customer Service">
-                    Customer Service
-                  </SelectItem>
-                  <SelectItem value="Human Resources">
-                    Human Resources
-                  </SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                  <SelectItem value="Database Administration">
-                    Database Administration
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Category and Sub-Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, category: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="Technical Issue">
-                    Technical Issue
-                  </SelectItem>
-                  <SelectItem value="Feature Request">
-                    Feature Request
-                  </SelectItem>
-                  <SelectItem value="Bug Report">Bug Report</SelectItem>
-                  <SelectItem value="Access Request">Access Request</SelectItem>
-                  <SelectItem value="Documentation">Documentation</SelectItem>
-                  <SelectItem value="Training">Training</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subCategory">Sub-Category *</Label>
-              <Select
-                value={formData.subCategory}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, subCategory: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select sub-category" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="Software Problem">
-                    Software Problem
-                  </SelectItem>
-                  <SelectItem value="Hardware Issue">Hardware Issue</SelectItem>
-                  <SelectItem value="Network Problem">
-                    Network Problem
-                  </SelectItem>
-                  <SelectItem value="Performance Issue">
-                    Performance Issue
-                  </SelectItem>
-                  <SelectItem value="UI Enhancement">UI Enhancement</SelectItem>
-                  <SelectItem value="Security Issue">Security Issue</SelectItem>
-                  <SelectItem value="Data Issue">Data Issue</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Network and Subject */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="network">Network/System *</Label>
-              <Select
-                value={formData.network}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, network: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select network/system" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="Internal Network">
-                    Internal Network
-                  </SelectItem>
-                  <SelectItem value="Customer Portal">
-                    Customer Portal
-                  </SelectItem>
-                  <SelectItem value="Production Database">
-                    Production Database
-                  </SelectItem>
-                  <SelectItem value="Development Environment">
-                    Development Environment
-                  </SelectItem>
-                  <SelectItem value="Email System">Email System</SelectItem>
-                  <SelectItem value="File Server">File Server</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subject">Subject *</Label>
-              <Input
-                id="subject"
-                type="text"
-                value={formData.subject}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, subject: e.target.value }))
-                }
-                placeholder="Brief title of the issue or request"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Description */}
+    <div className="bg-white rounded-lg shadow p-6">
+      <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Branch */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              placeholder="Detailed description of the issue or request"
-              rows={4}
-              required
-            />
-          </div>
-
-          {/* File Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="ticketFile">Attachment</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="ticketFile"
-                type="file"
-                onChange={handleFileChange}
-                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              <Upload className="h-4 w-4 text-gray-400" />
-            </div>
-            {formData.ticketFile && (
-              <p className="text-sm text-gray-600">
-                Selected: {formData.ticketFile.name}
-              </p>
+            <Label htmlFor="branch">Branch</Label>
+            <Select
+              onValueChange={(value) => setValue("branch", value)}
+              {...register("branch", { required: "Branch is required" })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {dropdownOptions.branches.map((branch) => (
+                  <SelectItem key={branch.id} value={branch.id.toString()}>
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.branch && (
+              <p className="text-sm text-red-500">{errors.branch.message}</p>
             )}
+          </div>
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              onValueChange={(value) => setValue("category", value)}
+              {...register("category", { required: "Category is required" })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {dropdownOptions.categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.category && (
+              <p className="text-sm text-red-500">{errors.category.message}</p>
+            )}
+          </div>
+
+          {/* Service */}
+          <div className="space-y-2">
+            <Label htmlFor="services">Service</Label>
+            <Select
+              onValueChange={(value) => setValue("services", value)}
+              {...register("services", { required: "Service is required" })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select service" />
+              </SelectTrigger>
+              <SelectContent>
+                {dropdownOptions.services.map((service) => (
+                  <SelectItem key={service.id} value={service.id.toString()}>
+                    {service.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.services && (
+              <p className="text-sm text-red-500">{errors.services.message}</p>
+            )}
+          </div>
+
+          {/* Subcategory */}
+          <div className="space-y-2">
+            <Label htmlFor="subcategory">Subcategory</Label>
+            <Select
+              onValueChange={(value) => setValue("subcategory", value)}
+              {...register("subcategory")}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select subcategory (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredSubcategories.map((subcategory) => (
+                  <SelectItem
+                    key={subcategory.id}
+                    value={subcategory.id.toString()}
+                  >
+                    {subcategory.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Network */}
+          <div className="space-y-2">
+            <Label htmlFor="network">Network</Label>
+            <Select
+              onValueChange={(value) => setValue("network", value)}
+              {...register("network")}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select network (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {dropdownOptions.networks.map((network) => (
+                  <SelectItem key={network.id} value={network.id.toString()}>
+                    {network.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Priority */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, priority: value as any }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Tags */}
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
-            <div className="flex gap-2">
-              <Input
-                id="tags"
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                placeholder="Add a tag"
-                onKeyPress={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addTag())
-                }
-              />
-              <Button
-                type="button"
-                onClick={addTag}
-                size="sm"
-                variant="outline"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.tags.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    {tag}
-                    <X
-                      className="h-3 w-3 cursor-pointer hover:text-red-500"
-                      onClick={() => removeTag(tag)}
-                    />
-                  </Badge>
-                ))}
-              </div>
+            <Label htmlFor="priority">Priority</Label>
+            <Select
+              onValueChange={(value) => setValue("priority", value)}
+              {...register("priority", { required: "Priority is required" })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                {dropdownOptions.priorities
+                  .sort((a, b) => (a.level || 0) - (b.level || 0))
+                  .map((priority) => (
+                    <SelectItem
+                      key={priority.id}
+                      value={priority.id.toString()}
+                    >
+                      {priority.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {errors.priority && (
+              <p className="text-sm text-red-500">{errors.priority.message}</p>
             )}
           </div>
+        </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            disabled={loading}
-          >
-            {loading ? "Creating Ticket..." : "Create Ticket"}
+        {/* Subject */}
+        <div className="space-y-2">
+          <Label htmlFor="subject">Subject</Label>
+          <Input
+            id="subject"
+            {...register("subject", { required: "Subject is required" })}
+            placeholder="Briefly describe your issue"
+          />
+          {errors.subject && (
+            <p className="text-sm text-red-500">{errors.subject.message}</p>
+          )}
+        </div>
+
+        {/* Description */}
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            {...register("description", {
+              required: "Description is required",
+            })}
+            placeholder="Provide detailed information about your issue"
+            rows={5}
+          />
+          {errors.description && (
+            <p className="text-sm text-red-500">{errors.description.message}</p>
+          )}
+        </div>
+
+        {/* Attachment */}
+        <div className="space-y-2">
+          <Label htmlFor="attachment">Attachment (optional)</Label>
+          <Input
+            id="attachment"
+            type="file"
+            onChange={handleFileChange}
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          />
+          <p className="text-sm text-gray-500">
+            Upload any relevant files (PDF, DOC, JPG, PNG)
+          </p>
+        </div>
+
+        {/* Tags */}
+        <div className="space-y-2">
+          <Label htmlFor="tags">Tags (optional)</Label>
+          <Input
+            id="tags"
+            {...register("tags")}
+            placeholder="Comma-separated tags (e.g., urgent, hardware, software)"
+          />
+        </div>
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={loading}>
+            {loading ? "Creating..." : "Create Ticket"}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      </form>
+    </div>
   );
 };

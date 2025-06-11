@@ -1,143 +1,135 @@
-
-import { useState, useEffect } from 'react';
-import { Ticket, TicketFormData } from '@/types/ticket';
+import { supabase } from '@/lib/utils/supabase';
+import { Ticket } from '@/types/ticket';
+import { useEffect, useState } from 'react';
 
 export const useTickets = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dropdownOptions, setDropdownOptions] = useState({
+    branches: [],
+    categories: [],
+    services: [],
+    subcategories: [],
+    networks: [],
+    priorities: [],
+    statuses: [],
+    assignees: []
+  });
 
-  // Mock data for demonstration with new fields and user associations
+  // In your useTickets.ts, modify the queries to be more explicit
+  const fetchDropdownOptions = async () => {
+    try {
+      setLoading(true);
+
+      const queries = [
+        supabase.from('branches').select('id, branch_name').order('branch_name'),
+        supabase.from('categories').select('id, category_name').order('category_name'),
+        supabase.from('services').select('id, service_name').order('service_name'),
+        supabase.from('subcategories').select('id, subcategory_name, category_id').order('subcategory_name'),
+        supabase.from('networks').select('id, network_name').order('network_name'),
+        supabase.from('priorities').select('id, priority_name, level').order('level'),
+        supabase.from('statuses').select('id, status_name').order('status_name'),
+        supabase.from('assignee').select('id, assignee_name').order('assignee_name')
+      ];
+
+      const results = await Promise.all(queries);
+
+      setDropdownOptions({
+        branches: results[0].data?.map(b => ({ id: b.id, name: b.branch_name })) || [],
+        categories: results[1].data?.map(c => ({ id: c.id, name: c.category_name })) || [],
+        services: results[2].data?.map(s => ({ id: s.id, name: s.service_name })) || [],
+        subcategories: results[3].data?.map(sc => ({
+          id: sc.id,
+          name: sc.subcategory_name,
+          category_id: sc.category_id
+        })) || [],
+        networks: results[4].data?.map(n => ({ id: n.id, name: n.network_name })) || [],
+        priorities: results[5].data?.map(p => ({
+          id: p.id,
+          name: p.priority_name,
+          level: p.level
+        })) || [],
+        statuses: results[6].data?.map(st => ({ id: st.id, name: st.status_name })) || [],
+        assignees: results[7].data?.map(a => ({ id: a.id, name: a.assignee_name })) || []
+      });
+
+    } catch (error) {
+      console.error('Error fetching dropdown options:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const mockTickets: Ticket[] = [
-      {
-        ticketID: 'TKT-001',
-        id: '1',
-        code: crypto.randomUUID(),
-        branch: 'BYD Branch',
-        services: 'IT Support',
-        category: 'Technical Issue',
-        subCategory: 'Software Problem',
-        network: 'Internal Network',
-        subject: 'Login System Issue',
-        title: 'Login page not loading',
-        description: 'Users are reporting that the login page takes too long to load and sometimes shows a 404 error.',
-        ticketFile: null,
-        timestamp: new Date('2024-06-01T10:00:00Z'),
-        status: 'open',
-        priority: 'high',
-        assignee: 'ICT Department',
-        reporter: 'Alice Johnson',
-        reporterEmail: 'alice@company.com',
-        reporterPhone: '+6281234567892',
-        reporterId: '3',
-        createdAt: new Date('2024-06-01T10:00:00Z'),
-        updatedAt: new Date('2024-06-01T10:00:00Z'),
-        tags: ['login', 'frontend', 'critical']
-      },
-      {
-        ticketID: 'TKT-002',
-        id: '2',
-        code: crypto.randomUUID(),
-        branch: 'Hyundai Branch',
-        services: 'Customer Service',
-        category: 'Feature Request',
-        subCategory: 'UI Enhancement',
-        network: 'Customer Portal',
-        subject: 'Dark Mode Implementation',
-        title: 'Add dark mode support',
-        description: 'Implement dark mode theme across the entire application for better user experience.',
-        ticketFile: null,
-        timestamp: new Date('2024-05-28T14:30:00Z'),
-        status: 'in-progress',
-        priority: 'medium',
-        assignee: 'ICT Department',
-        reporter: 'Regular User',
-        reporterEmail: 'user@company.com',
-        reporterPhone: '+6281234567891',
-        reporterId: '2',
-        createdAt: new Date('2024-05-28T14:30:00Z'),
-        updatedAt: new Date('2024-06-01T09:15:00Z'),
-        tags: ['ui', 'theme', 'enhancement']
-      },
-      {
-        ticketID: 'TKT-003',
-        id: '3',
-        code: crypto.randomUUID(),
-        branch: 'Bumi Auto Head Office',
-        services: 'Database Administration',
-        category: 'Technical Issue',
-        subCategory: 'Performance Issue',
-        network: 'Production Database',
-        subject: 'Database Connection Timeout',
-        title: 'Database connection timeout',
-        description: 'Application is experiencing intermittent database connection timeouts during peak hours.',
-        ticketFile: null,
-        timestamp: new Date('2024-05-25T08:00:00Z'),
-        status: 'resolved',
-        priority: 'critical',
-        assignee: 'ICT Department',
-        reporter: 'Admin User',
-        reporterEmail: 'admin@company.com',
-        reporterPhone: '+6281234567890',
-        reporterId: '1',
-        createdAt: new Date('2024-05-25T08:00:00Z'),
-        updatedAt: new Date('2024-05-30T16:45:00Z'),
-        tags: ['database', 'performance', 'backend']
-      }
-    ];
-    setTickets(mockTickets);
+    fetchDropdownOptions();
   }, []);
 
-  const createTicket = (ticketData: TicketFormData) => {
+  const fetchTickets = async () => {
     setLoading(true);
-    const newTicket: Ticket = {
-      ticketID: `TKT-${String(Date.now()).slice(-3).padStart(3, '0')}`,
-      id: Date.now().toString(),
-      code: crypto.randomUUID(), // Auto-generate UUID for ticket code
-      ...ticketData,
-      title: ticketData.subject, // Map subject to title for compatibility
-      timestamp: new Date(),
-      status: 'open',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    setTimeout(() => {
-      setTickets(prev => [newTicket, ...prev]);
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        branch:branches(name),
+        category:categories(name),
+        services:services(name),
+        subcategory:subcategories(name),
+        network:networks(name),
+        priority:priorities(name),
+        status:statuses(name),
+        assignee:assignee(name),
+        profile:profiles(name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (!error) {
+      setTickets(data || []);
+    }
+    setLoading(false);
+  };
+
+  const createTicket = async (ticketData: any) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .insert([ticketData])
+        .select(`
+          *,
+          branch:branches(name),
+          category:categories(name),
+          services:services(name),
+          subcategory:subcategories(name),
+          network:networks(name),
+          priority:priorities(name),
+          status:statuses(name),
+          assignee:assignee(name),
+          profile:profiles(name)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      setTickets(prev => [data, ...prev]);
+      return data;
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      throw error;
+    } finally {
       setLoading(false);
-    }, 500);
-  };
-
-  const updateTicketStatus = (ticketId: string, status: Ticket['status']) => {
-    setTickets(prev => 
-      prev.map(ticket => 
-        ticket.id === ticketId 
-          ? { ...ticket, status, updatedAt: new Date() }
-          : ticket
-      )
-    );
-  };
-
-  const updateTicketAssignee = (ticketId: string, assignee: string) => {
-    setTickets(prev => 
-      prev.map(ticket => 
-        ticket.id === ticketId 
-          ? { ...ticket, assignee, updatedAt: new Date() }
-          : ticket
-      )
-    );
+    }
   };
 
   const getTicketsByUser = (userId: string) => {
-    return tickets.filter(ticket => ticket.reporterId === userId);
+    return tickets.filter(ticket => ticket.profile === userId);
   };
 
   return {
     tickets,
     loading,
     createTicket,
-    updateTicketStatus,
-    updateTicketAssignee,
-    getTicketsByUser
+    dropdownOptions,
+    getTicketsByUser,
+    fetchTickets
   };
 };
