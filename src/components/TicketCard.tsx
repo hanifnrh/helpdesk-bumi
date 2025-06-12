@@ -21,24 +21,24 @@ interface TicketCardProps {
 
 // Map status IDs to display values
 const statusMap: Record<number, { text: string; color: string }> = {
-  1: { text: "OPEN", color: "bg-blue-100 text-blue-800 border-blue-200" },
+  1: { text: "OPEN", color: "bg-blue-100 text-blue-500" },
   2: {
     text: "IN PROGRESS",
-    color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    color: "bg-yellow-100 text-yellow-500",
   },
   3: {
     text: "RESOLVED",
-    color: "bg-green-100 text-green-800 border-green-200",
+    color: "bg-green-100 text-green-500",
   },
-  4: { text: "CLOSED", color: "bg-gray-100 text-gray-800 border-gray-200" },
+  4: { text: "CLOSED", color: "bg-gray-100 text-gray-500" },
 };
 
 // Map priority IDs to display values
 const priorityMap: Record<number, { text: string; color: string }> = {
-  1: { text: "LOW", color: "bg-gray-100 text-gray-800" },
-  2: { text: "MEDIUM", color: "bg-blue-100 text-blue-800" },
-  3: { text: "HIGH", color: "bg-orange-100 text-orange-800" },
-  4: { text: "CRITICAL", color: "bg-red-100 text-red-800" },
+  1: { text: "LOW", color: "bg-green-100 text-green-500" },
+  2: { text: "MEDIUM", color: "bg-blue-100 text-blue-500" },
+  3: { text: "HIGH", color: "bg-orange-100 text-orange-500" },
+  4: { text: "CRITICAL", color: "bg-red-100 text-red-500" },
 };
 
 export const TicketCard = ({
@@ -55,7 +55,6 @@ export const TicketCard = ({
     return field.toString();
   };
 
-  // Parse tags (assuming they're stored as comma-separated string)
   const tags = ticket.tags ? ticket.tags.split(",").map((t) => t.trim()) : [];
 
   // Get status info - handle both ID and joined object
@@ -64,11 +63,16 @@ export const TicketCard = ({
       ? statusMap[ticket.status.id] || statusMap[1]
       : statusMap[ticket.status] || statusMap[1];
 
-  // Get priority info - handle both ID and joined object
-  const priorityInfo =
-    typeof ticket.priority === "object"
-      ? priorityMap[ticket.priority.id] || priorityMap[2]
-      : priorityMap[ticket.priority] || priorityMap[2];
+  // Get priority info - handle both ID, joined object, and null cases
+  const priorityInfo = (() => {
+    if (!ticket.priority) return null;
+
+    if (typeof ticket.priority === "object") {
+      return priorityMap[ticket.priority.id] || null;
+    }
+
+    return priorityMap[ticket.priority] || null;
+  })();
 
   return (
     <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
@@ -82,8 +86,12 @@ export const TicketCard = ({
               {ticket.description || "No description provided"}
             </p>
           </div>
-          <Badge className={`${priorityInfo.color} font-medium ml-3`}>
-            {priorityInfo.text}
+          <Badge
+            className={`${
+              priorityInfo?.color || "bg-gray-100 text-gray-800"
+            } font-medium ml-3`}
+          >
+            {priorityInfo?.text || "N/A"}
           </Badge>
         </div>
       </CardHeader>
@@ -105,7 +113,7 @@ export const TicketCard = ({
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded"
+                  className="text-xs bg-zinc-100 text-zinc-800 px-2 py-1 rounded"
                 >
                   {tag}
                 </span>

@@ -25,7 +25,7 @@ export interface Ticket {
   services: number | { id: number; name: string };
   subcategory: number | { id: number; name: string } | null;
   network: number | { id: number; name: string } | null;
-  priority: number | { id: number; name: string };
+  priority: number | { id: number; priority_name: string; level: number } | null;
   status: number | { id: number; name: string };
   tags: string | null;
   attachment: string | null;

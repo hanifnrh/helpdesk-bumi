@@ -1,8 +1,9 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
+export const PrivateRoute = () => {
   const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -13,9 +14,8 @@ export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   }
 
   if (!isAuthenticated) {
-    // Add a small delay to ensure auth state is cleared
-    return <Navigate to="/" replace state={{ from: location }} />;
+    return <Navigate to="/" replace state={{ from: location.pathname }} />;
   }
 
-  return children;
+  return <Outlet />;
 };

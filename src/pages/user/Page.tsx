@@ -18,13 +18,6 @@ import { useNavigate } from "react-router-dom";
 const UserDashboard = () => {
   const { user, logout } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
-  const {
-    tickets,
-    loading: ticketsLoading,
-    createTicket,
-    getTicketsByUser,
-    dropdownOptions,
-  } = useTickets();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -37,45 +30,76 @@ const UserDashboard = () => {
     priority: "all",
     category: "all",
   });
-
-  const userTickets = getTicketsByUser(user?.id || "");
+  const {
+    tickets,
+    loading: ticketsLoading,
+    createTicket,
+    dropdownOptions,
+  } = useTickets(user?.id);
 
   const filteredTickets = useMemo(() => {
-    return userTickets.filter((ticket) => {
+    return tickets.filter((ticket) => {
+      // Search filter
+      const title = ticket.title || "";
+      const description = ticket.description || "";
+      const profileName =
+        typeof ticket.profile === "object" ? ticket.profile?.name || "" : "";
+
       const matchesSearch =
-        ticket.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        ticket.description
-          .toLowerCase()
-          .includes(filters.search.toLowerCase()) ||
-        (typeof ticket.profile === "object"
-          ? ticket.profile.name
-              .toLowerCase()
-              .includes(filters.search.toLowerCase())
-          : false);
+        filters.search === "" ||
+        title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        description.toLowerCase().includes(filters.search.toLowerCase()) ||
+        profileName.toLowerCase().includes(filters.search.toLowerCase());
 
-      const matchesStatus =
-        filters.status === "all" ||
-        (typeof ticket.status === "object"
-          ? ticket.status.name === filters.status
-          : ticket.status.toString() === filters.status);
+      const matchesCategory = (() => {
+        if (filters.category === "all") return true;
 
-      const matchesPriority =
-        filters.priority === "all" ||
-        (typeof ticket.priority === "object"
-          ? ticket.priority.name === filters.priority
-          : ticket.priority.toString() === filters.priority);
+        const categoryName =
+          typeof ticket.category === "object"
+            ? ticket.category?.name?.toLowerCase()
+            : dropdownOptions.categories
+                .find((c) => c.id === ticket.category)
+                ?.name.toLowerCase() || "";
 
-      const matchesCategory =
-        filters.category === "all" ||
-        (typeof ticket.category === "object"
-          ? ticket.category.name === filters.category
-          : ticket.category.toString() === filters.category);
+        return categoryName === filters.category.toLowerCase();
+      })();
+
+      const matchesStatus = (() => {
+        if (filters.status === "all") return true;
+
+        const statusName =
+          typeof ticket.status === "object"
+            ? ticket.status?.name?.toLowerCase()
+            : dropdownOptions.statuses
+                .find((s) => s.id === ticket.status)
+                ?.name.toLowerCase() || "";
+
+        return statusName === filters.status.toLowerCase();
+      })();
+
+      const matchesPriority = (() => {
+        if (filters.priority === "all") return true;
+
+        const priorityName =
+          typeof ticket.priority === "object"
+            ? ticket.priority?.priority_name?.toLowerCase()
+            : dropdownOptions.priorities
+                .find((p) => p.id === ticket.priority)
+                ?.name.toLowerCase() || "";
+
+        return priorityName === filters.priority.toLowerCase();
+      })();
 
       return (
         matchesSearch && matchesStatus && matchesPriority && matchesCategory
       );
     });
-  }, [userTickets, filters]);
+  }, [
+    tickets,
+    filters,
+    dropdownOptions.priorities,
+    dropdownOptions.categories,
+  ]);
 
   const handleCreateTicket = async (ticketData: any) => {
     setLoading(true);
@@ -169,7 +193,7 @@ const UserDashboard = () => {
         </div>
 
         {/* Stats */}
-        <TicketStats tickets={userTickets} />
+        <TicketStats tickets={tickets} />
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -209,6 +233,7 @@ const UserDashboard = () => {
               }
               activeFilters={filters}
               onClearFilters={clearFilters}
+              dropdownOptions={dropdownOptions} // Add this line
             />
 
             {/* Tickets Grid */}

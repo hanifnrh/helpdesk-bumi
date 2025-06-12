@@ -1,10 +1,14 @@
-
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Search, Filter, X } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Filter, Search, X } from "lucide-react";
 
 interface TicketFiltersProps {
   onSearchChange: (search: string) => void;
@@ -18,6 +22,11 @@ interface TicketFiltersProps {
     category: string;
   };
   onClearFilters: () => void;
+  dropdownOptions: {
+    statuses: { id: string; name: string }[];
+    priorities: { id: string; name: string }[];
+    categories: { id: string; name: string }[];
+  };
 }
 
 export const TicketFilters = ({
@@ -26,9 +35,12 @@ export const TicketFilters = ({
   onPriorityFilter,
   onCategoryFilter,
   activeFilters,
-  onClearFilters
+  onClearFilters,
+  dropdownOptions,
 }: TicketFiltersProps) => {
-  const hasActiveFilters = Object.values(activeFilters).some(filter => filter !== '' && filter !== 'all');
+  const hasActiveFilters = Object.values(activeFilters).some(
+    (filter) => filter !== "" && filter !== "all"
+  );
 
   return (
     <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4">
@@ -59,48 +71,46 @@ export const TicketFilters = ({
             className="pl-10"
           />
         </div>
-
-        {/* Status Filter */}
+        {/* // Status Filter */}
         <Select value={activeFilters.status} onValueChange={onStatusFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-gray-200 shadow-lg">
+          <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="open">Open</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
+            {dropdownOptions.statuses.map((status) => (
+              <SelectItem key={status.id} value={status.id}>
+                {status.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-
-        {/* Priority Filter */}
+        {/* // Priority Filter */}
         <Select value={activeFilters.priority} onValueChange={onPriorityFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All Priorities" />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-gray-200 shadow-lg">
+          <SelectContent>
             <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="critical">Critical</SelectItem>
+            {dropdownOptions.priorities.map((priority) => (
+              <SelectItem key={priority.id} value={priority.id}>
+                {priority.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-
-        {/* Category Filter */}
+        {/* // Category Filter */}
         <Select value={activeFilters.category} onValueChange={onCategoryFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-gray-200 shadow-lg">
+          <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="Bug">Bug</SelectItem>
-            <SelectItem value="Feature Request">Feature Request</SelectItem>
-            <SelectItem value="Support">Support</SelectItem>
-            <SelectItem value="Documentation">Documentation</SelectItem>
-            <SelectItem value="Performance">Performance</SelectItem>
-            <SelectItem value="Security">Security</SelectItem>
+            {dropdownOptions.categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -113,34 +123,43 @@ export const TicketFilters = ({
               Search: {activeFilters.search}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
-                onClick={() => onSearchChange('')}
+                onClick={() => onSearchChange("")}
               />
             </Badge>
           )}
-          {activeFilters.status && activeFilters.status !== 'all' && (
+          {activeFilters.status && activeFilters.status !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Status: {activeFilters.status}
+              Status:{" "}
+              {dropdownOptions.statuses.find(
+                (s) => s.name.toLowerCase() === activeFilters.status
+              )?.name || activeFilters.status}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
-                onClick={() => onStatusFilter('all')}
+                onClick={() => onStatusFilter("all")}
               />
             </Badge>
           )}
-          {activeFilters.priority && activeFilters.priority !== 'all' && (
+          {activeFilters.priority && activeFilters.priority !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Priority: {activeFilters.priority}
+              Priority:{" "}
+              {dropdownOptions.priorities.find(
+                (p) => p.name.toLowerCase() === activeFilters.priority
+              )?.name || activeFilters.priority}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
-                onClick={() => onPriorityFilter('all')}
+                onClick={() => onPriorityFilter("all")}
               />
             </Badge>
           )}
-          {activeFilters.category && activeFilters.category !== 'all' && (
+          {activeFilters.category && activeFilters.category !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Category: {activeFilters.category}
+              Category:{" "}
+              {dropdownOptions.categories.find(
+                (c) => c.name.toLowerCase() === activeFilters.category
+              )?.name || activeFilters.category}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
-                onClick={() => onCategoryFilter('all')}
+                onClick={() => onCategoryFilter("all")}
               />
             </Badge>
           )}

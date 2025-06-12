@@ -2,7 +2,7 @@ import { supabase } from '@/lib/utils/supabase';
 import { Ticket } from '@/types/ticket';
 import { useEffect, useState } from 'react';
 
-export const useTickets = () => {
+export const useTickets = (userId?: string) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [dropdownOptions, setDropdownOptions] = useState({
@@ -16,11 +16,9 @@ export const useTickets = () => {
     assignees: []
   });
 
-  // In your useTickets.ts, modify the queries to be more explicit
   const fetchDropdownOptions = async () => {
     try {
       setLoading(true);
-
       const queries = [
         supabase.from('branches').select('id, branch_name').order('branch_name'),
         supabase.from('categories').select('id, category_name').order('category_name'),
@@ -33,7 +31,6 @@ export const useTickets = () => {
       ];
 
       const results = await Promise.all(queries);
-
       setDropdownOptions({
         branches: results[0].data?.map(b => ({ id: b.id, name: b.branch_name })) || [],
         categories: results[1].data?.map(c => ({ id: c.id, name: c.category_name })) || [],
@@ -52,7 +49,6 @@ export const useTickets = () => {
         statuses: results[6].data?.map(st => ({ id: st.id, name: st.status_name })) || [],
         assignees: results[7].data?.map(a => ({ id: a.id, name: a.assignee_name })) || []
       });
-
     } catch (error) {
       console.error('Error fetching dropdown options:', error);
     } finally {
@@ -60,47 +56,71 @@ export const useTickets = () => {
     }
   };
 
+  const fetchTicketsByUser = async (userId: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('ticket')
+        .select(`
+        *,
+        branch:branches(branch_name),
+        category:categories(id, category_name),
+        services:services(service_name),
+        subcategory:subcategories(subcategory_name),
+        network:networks(network_name),
+        priority:priorities(id, priority_name, level),
+        status:statuses(id, status_name),
+        assignee:assignee(assignee_name),
+        profile:profiles(name)
+      `)
+        .eq('profile', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform the data to match your expected format
+      const transformedData = data?.map(ticket => ({
+        ...ticket,
+        branch: ticket.branch?.branch_name,
+        category: ticket.category || null,
+        services: ticket.services?.service_name,
+        subcategory: ticket.subcategory?.subcategory_name,
+        network: ticket.network?.network_name,
+        priority: ticket.priority,
+        status: ticket.status?.status_name,
+        assignee: ticket.assignee?.assignee_name,
+        profile: ticket.profile // This should already be correct if profiles.name exists
+      })) || [];
+
+      setTickets(transformedData);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     fetchDropdownOptions();
   }, []);
 
-  const fetchTickets = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('ticket')
-      .select(`
-        *,
-        branch:branches(name),
-        category:categories(name),
-        services:services(name),
-        subcategory:subcategories(name),
-        network:networks(name),
-        priority:priorities(name, level),
-        status:statuses(name),
-        assignee:assignee(name),
-        profile:profiles(name)
-      `)
-      .order('created_at', { ascending: false });
-
-    if (!error) {
-      setTickets(data || []);
+  useEffect(() => {
+    if (userId) {
+      fetchTicketsByUser(userId);
     }
-    setLoading(false);
-  };
+  }, [userId]);
 
   const createTicket = async (ticketData: any) => {
     setLoading(true);
     try {
-      // Get and verify session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) throw new Error("Not authenticated");
 
-      // Ensure required fields are present
       const completeData = {
         ...ticketData,
-        profile: session.user.id, // Use the authenticated user's ID
-        status: ticketData.status || 1, // Default status if not provided
-        created_at: new Date().toISOString() // Add current timestamp
+        profile: session.user.id,
+        status: ticketData.status || 1,
+        priority: ticketData.priority || 2,
+        created_at: new Date().toISOString()
       };
 
       const { data, error } = await supabase
@@ -110,6 +130,7 @@ export const useTickets = () => {
         .single();
 
       if (error) throw error;
+      if (userId) fetchTicketsByUser(userId); // Refresh tickets after creation
       return data;
     } catch (error) {
       console.error('Ticket creation failed:', error);
@@ -119,31 +140,14 @@ export const useTickets = () => {
     }
   };
 
-  const getTicketsByUser = (userId: string) => {
-    console.log('Current user ID:', userId);
-    console.log('All tickets:', tickets);
-
-    const userTickets = tickets.filter(ticket => {
-      // Handle both cases where profile might be an object or UUID string
-      const ticketProfileId = typeof ticket.profile === 'object'
-        ? ticket.profile.id
-        : ticket.profile;
-
-      return ticketProfileId === userId;
-    });
-
-    console.log('Filtered tickets:', userTickets);
-    return userTickets;
-  };
-
   const updateTicketStatus = async (ticketId: string, status: Ticket["status"]) => {
     await supabase.from("ticket").update({ status }).eq("id", ticketId);
-    fetchTickets();
+    if (userId) fetchTicketsByUser(userId);
   };
 
   const updateTicketAssignee = async (ticketId: string, assignee: string) => {
     await supabase.from("ticket").update({ assignee }).eq("id", ticketId);
-    fetchTickets();
+    if (userId) fetchTicketsByUser(userId);
   };
 
   return {
@@ -153,7 +157,6 @@ export const useTickets = () => {
     dropdownOptions,
     updateTicketStatus,
     updateTicketAssignee,
-    getTicketsByUser,
-    fetchTickets
+    fetchTickets: () => userId ? fetchTicketsByUser(userId) : null
   };
 };
