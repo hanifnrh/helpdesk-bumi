@@ -61,35 +61,54 @@ export const TicketForm = ({
       let attachmentUrl = null;
 
       if (file) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
+        // Verify session first
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError || !session) throw new Error("Not authenticated");
 
+        // Create unique file path with user ID
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
+
+        // Upload with error handling
         const { error: uploadError } = await supabase.storage
-          .from("attachment")
-          .upload(filePath, file);
+          .from("attachment") // Double-check this name!
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || "application/octet-stream",
+          });
 
         if (uploadError) throw uploadError;
 
+        // Get public URL
         const {
           data: { publicUrl },
-        } = supabase.storage.from("attachment").getPublicUrl(filePath);
+        } = supabase.storage.from("attachment").getPublicUrl(fileName);
 
         attachmentUrl = publicUrl;
       }
 
       const ticketData = {
         ...data,
+        branch: Number(data.branch),
+        category: Number(data.category),
+        subcategory: data.subcategory ? Number(data.subcategory) : null,
+        services: Number(data.services),
+        network: data.network ? Number(data.network) : null,
+        priority: Number(data.priority),
         attachment: attachmentUrl,
-        status: 1, // Default status (open)
+        status: 1,
       };
 
       await onSubmit(ticketData);
     } catch (error) {
-      console.error("Error submitting ticket:", error);
+      console.error("Error:", error);
       toast({
         title: "Error",
-        description: "Failed to create ticket",
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -103,7 +122,7 @@ export const TicketForm = ({
           <div className="space-y-2">
             <Label htmlFor="branch">Branch</Label>
             <Select
-              onValueChange={(value) => setValue("branch", value)}
+              onValueChange={(value) => setValue("branch", Number(value))}
               {...register("branch", { required: "Branch is required" })}
             >
               <SelectTrigger>
@@ -126,7 +145,7 @@ export const TicketForm = ({
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select
-              onValueChange={(value) => setValue("category", value)}
+              onValueChange={(value) => setValue("category", Number(value))}
               {...register("category", { required: "Category is required" })}
             >
               <SelectTrigger>
@@ -149,7 +168,7 @@ export const TicketForm = ({
           <div className="space-y-2">
             <Label htmlFor="services">Service</Label>
             <Select
-              onValueChange={(value) => setValue("services", value)}
+              onValueChange={(value) => setValue("services", Number(value))}
               {...register("services", { required: "Service is required" })}
             >
               <SelectTrigger>
@@ -172,7 +191,7 @@ export const TicketForm = ({
           <div className="space-y-2">
             <Label htmlFor="subcategory">Subcategory</Label>
             <Select
-              onValueChange={(value) => setValue("subcategory", value)}
+              onValueChange={(value) => setValue("subcategory", Number(value))}
               {...register("subcategory")}
             >
               <SelectTrigger>
@@ -195,7 +214,7 @@ export const TicketForm = ({
           <div className="space-y-2">
             <Label htmlFor="network">Network</Label>
             <Select
-              onValueChange={(value) => setValue("network", value)}
+              onValueChange={(value) => setValue("network", Number(value))}
               {...register("network")}
             >
               <SelectTrigger>
@@ -215,7 +234,7 @@ export const TicketForm = ({
           <div className="space-y-2">
             <Label htmlFor="priority">Priority</Label>
             <Select
-              onValueChange={(value) => setValue("priority", value)}
+              onValueChange={(value) => setValue("priority", Number(value))}
               {...register("priority", { required: "Priority is required" })}
             >
               <SelectTrigger>

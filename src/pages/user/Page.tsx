@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { useTickets } from "@/hooks/useTickets";
+import { supabase } from "@/lib/utils/supabase";
 import { Ticket } from "@/types/ticket";
 import { LogOut, Plus, Ticket as TicketIcon } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -76,28 +77,33 @@ const UserDashboard = () => {
     });
   }, [userTickets, filters]);
 
-  // Update the handleCreateTicket function in UserDashboard
   const handleCreateTicket = async (ticketData: any) => {
     setLoading(true);
     try {
-      // Add profile ID to the ticket data
+      // Get current user ID
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const ticketWithProfile = {
         ...ticketData,
-        profile: profile?.id,
-        title: ticketData.subject, // Use subject as title
+        profile: user.id, // Use the authenticated user's ID
+        title: ticketData.subject,
       };
 
       const newTicket = await createTicket(ticketWithProfile);
       toast({
         title: "Success",
-        description: "Ticket created successfully.",
+        description: "Ticket created successfully",
         variant: "default",
       });
-      navigate(`/tickets/${newTicket.id}`);
+      // navigate(`/tickets/${newTicket.id}`);
+      navigate("/user/dashboard");
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create ticket.",
+        description: error.message || "Failed to create ticket",
         variant: "destructive",
       });
       console.error(error);

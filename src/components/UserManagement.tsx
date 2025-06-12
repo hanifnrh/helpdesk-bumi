@@ -1,15 +1,15 @@
-import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Mail, Phone, Trash2, RotateCcw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
 import { UserFormData } from '@/types/auth';
-import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Mail, Phone, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 export const UserManagement = () => {
   const { users, loading, addUser, removeUser, resetUserPassword } = useUsers();

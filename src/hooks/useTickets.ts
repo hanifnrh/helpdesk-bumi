@@ -67,7 +67,7 @@ export const useTickets = () => {
   const fetchTickets = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('tickets')
+      .from('ticket')
       .select(`
         *,
         branch:branches(name),
@@ -75,7 +75,7 @@ export const useTickets = () => {
         services:services(name),
         subcategory:subcategories(name),
         network:networks(name),
-        priority:priorities(name),
+        priority:priorities(name, level),
         status:statuses(name),
         assignee:assignee(name),
         profile:profiles(name)
@@ -91,29 +91,28 @@ export const useTickets = () => {
   const createTicket = async (ticketData: any) => {
     setLoading(true);
     try {
+      // Get and verify session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) throw new Error("Not authenticated");
+
+      // Ensure required fields are present
+      const completeData = {
+        ...ticketData,
+        profile: session.user.id, // Use the authenticated user's ID
+        status: ticketData.status || 1, // Default status if not provided
+        created_at: new Date().toISOString() // Add current timestamp
+      };
+
       const { data, error } = await supabase
-        .from('tickets')
-        .insert([ticketData])
-        .select(`
-          *,
-          branch:branches(name),
-          category:categories(name),
-          services:services(name),
-          subcategory:subcategories(name),
-          network:networks(name),
-          priority:priorities(name),
-          status:statuses(name),
-          assignee:assignee(name),
-          profile:profiles(name)
-        `)
+        .from('ticket')
+        .insert([completeData])
+        .select()
         .single();
 
       if (error) throw error;
-
-      setTickets(prev => [data, ...prev]);
       return data;
     } catch (error) {
-      console.error('Error creating ticket:', error);
+      console.error('Ticket creation failed:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -121,7 +120,30 @@ export const useTickets = () => {
   };
 
   const getTicketsByUser = (userId: string) => {
-    return tickets.filter(ticket => ticket.profile === userId);
+    console.log('Current user ID:', userId);
+    console.log('All tickets:', tickets);
+
+    const userTickets = tickets.filter(ticket => {
+      // Handle both cases where profile might be an object or UUID string
+      const ticketProfileId = typeof ticket.profile === 'object'
+        ? ticket.profile.id
+        : ticket.profile;
+
+      return ticketProfileId === userId;
+    });
+
+    console.log('Filtered tickets:', userTickets);
+    return userTickets;
+  };
+
+  const updateTicketStatus = async (ticketId: string, status: Ticket["status"]) => {
+    await supabase.from("ticket").update({ status }).eq("id", ticketId);
+    fetchTickets();
+  };
+
+  const updateTicketAssignee = async (ticketId: string, assignee: string) => {
+    await supabase.from("ticket").update({ assignee }).eq("id", ticketId);
+    fetchTickets();
   };
 
   return {
@@ -129,6 +151,8 @@ export const useTickets = () => {
     loading,
     createTicket,
     dropdownOptions,
+    updateTicketStatus,
+    updateTicketAssignee,
     getTicketsByUser,
     fetchTickets
   };

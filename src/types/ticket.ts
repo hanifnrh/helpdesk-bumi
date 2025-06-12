@@ -1,14 +1,18 @@
+// src/types/ticket.ts
 export interface TicketFormData {
-  branch: string;
-  services: string;
-  category: string;
-  subcategory?: string;
-  network?: string;
+  branch: number;
+  category: number;
+  subcategory: number | null;
+  services: number;
+  network: number | null;
+  priority: number;
+  attachment: string | null;
+  status: number;
   subject: string;
   description: string;
-  priority: string;
   tags?: string;
 }
+
 
 export interface Ticket {
   id: string;

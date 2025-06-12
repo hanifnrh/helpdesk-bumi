@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 
 export const createTicket = async (ticketData: any) => {
     const { data, error } = await supabase
-        .from('tickets')
+        .from('ticket')
         .insert([ticketData])
         .select();
 
