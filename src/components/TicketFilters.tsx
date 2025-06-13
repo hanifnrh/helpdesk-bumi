@@ -78,11 +78,13 @@ export const TicketFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            {dropdownOptions.statuses.map((status) => (
-              <SelectItem key={status.id} value={status.id}>
-                {status.name}
-              </SelectItem>
-            ))}
+            {[...dropdownOptions.statuses]
+              .sort((a, b) => Number(a.id) - Number(b.id))
+              .map((status) => (
+                <SelectItem key={status.id} value={status.id}>
+                  {status.name}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         {/* // Priority Filter */}

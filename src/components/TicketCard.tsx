@@ -32,10 +32,21 @@ const priorityMap: Record<number, { text: string; color: string }> = {
 };
 
 export const TicketCard = ({ ticket, onClick }: TicketCardProps) => {
-
   const getDisplayName = (field: any) => {
     if (!field) return "N/A";
-    if (typeof field === "object") return field.name || "N/A";
+    if (typeof field === "object") {
+      // Handle category object specifically
+      if ("category_name" in field) {
+        return field.category_name;
+      }
+      // Fallback for other objects
+      return (
+        field.name ||
+        field.status_name ||
+        field.priority_name ||
+        "N/A"
+      );
+    }
     return field.toString();
   };
 
