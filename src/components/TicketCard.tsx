@@ -1,22 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Ticket } from "@/types/ticket";
 import { format } from "date-fns";
 import { Calendar, Tag, User } from "lucide-react";
 
 interface TicketCardProps {
   ticket: Ticket;
-  onStatusChange: (ticketId: string, status: number) => void;
-  onAssigneeChange: (ticketId: string, assignee: number) => void;
   onClick: (ticket: Ticket) => void;
-  isAdmin?: boolean;
 }
 
 // Map status IDs to display values
@@ -41,14 +31,8 @@ const priorityMap: Record<number, { text: string; color: string }> = {
   4: { text: "CRITICAL", color: "bg-red-100 text-red-500" },
 };
 
-export const TicketCard = ({
-  ticket,
-  onStatusChange,
-  onAssigneeChange,
-  onClick,
-  isAdmin = false,
-}: TicketCardProps) => {
-  // Helper to get display name from relation (could be ID or joined object)
+export const TicketCard = ({ ticket, onClick }: TicketCardProps) => {
+
   const getDisplayName = (field: any) => {
     if (!field) return "N/A";
     if (typeof field === "object") return field.name || "N/A";
@@ -57,13 +41,18 @@ export const TicketCard = ({
 
   const tags = ticket.tags ? ticket.tags.split(",").map((t) => t.trim()) : [];
 
-  // Get status info - handle both ID and joined object
-  const statusInfo =
-    typeof ticket.status === "object"
-      ? statusMap[ticket.status.id] || statusMap[1]
-      : statusMap[ticket.status] || statusMap[1];
+  // Status info
+  const statusInfo = (() => {
+    if (!ticket.status) return statusMap[1];
 
-  // Get priority info - handle both ID, joined object, and null cases
+    if (typeof ticket.status === "object") {
+      return statusMap[ticket.status.id] || statusMap[1];
+    }
+
+    return statusMap[ticket.status] || statusMap[1];
+  })();
+
+  // Priority info
   const priorityInfo = (() => {
     if (!ticket.priority) return null;
 
@@ -136,56 +125,6 @@ export const TicketCard = ({
               <span>{format(new Date(ticket.created_at), "MMM dd, yyyy")}</span>
             </div>
           </div>
-
-          {/* Status and Assignee Controls - Only for Admin */}
-          {isAdmin && (
-            <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-              <Select
-                value={
-                  typeof ticket.status === "object"
-                    ? ticket.status.id.toString()
-                    : ticket.status?.toString()
-                }
-                onValueChange={(status) =>
-                  onStatusChange(ticket.id, parseInt(status))
-                }
-              >
-                <SelectTrigger className="h-8 text-xs bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  {Object.entries(statusMap).map(([id, { text }]) => (
-                    <SelectItem key={id} value={id}>
-                      {text}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={
-                  typeof ticket.assignee === "object"
-                    ? ticket.assignee.id.toString()
-                    : ticket.assignee?.toString() || "0"
-                }
-                onValueChange={(assignee) =>
-                  onAssigneeChange(ticket.id, parseInt(assignee))
-                }
-              >
-                <SelectTrigger className="h-8 text-xs bg-white flex-1">
-                  <SelectValue placeholder="Assign to..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                  <SelectItem value="0">Unassigned</SelectItem>
-                  {/* These should come from your assignees dropdown options */}
-                  <SelectItem value="1">ICT Department</SelectItem>
-                  <SelectItem value="2">General Affair</SelectItem>
-                  <SelectItem value="3">Human Capital</SelectItem>
-                  <SelectItem value="4">Others</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

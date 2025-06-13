@@ -56,49 +56,66 @@ export const useTickets = (userId?: string) => {
     }
   };
 
-  const fetchTicketsByUser = async (userId: string) => {
+  const fetchTicketsByUser = async (userId: string, filters = {
+    search: "",
+    status: "all",
+    priority: "all",
+    category: "all"
+  }) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Base query
+      let query = supabase
         .from('ticket')
         .select(`
-        *,
-        branch:branches(branch_name),
-        category:categories(id, category_name),
-        services:services(service_name),
-        subcategory:subcategories(subcategory_name),
-        network:networks(network_name),
-        priority:priorities(id, priority_name, level),
-        status:statuses(id, status_name),
-        assignee:assignee(assignee_name),
-        profile:profiles(name)
-      `)
+          *,
+          branch:branches(id, branch_name),
+          category:categories(id, category_name),
+          services:services(id, service_name),
+          subcategory:subcategories(id, subcategory_name),
+          network:networks(id, network_name),
+          priority:priorities(id, priority_name, level),
+          status:statuses(id, status_name),
+          assignee:assignee(id, assignee_name),
+          profile:profiles(id, name)
+        `)
         .eq('profile', userId)
         .order('created_at', { ascending: false });
 
+      // Apply filters
+      if (filters.status !== "all") {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.priority !== "all") {
+        query = query.eq('priority', filters.priority);
+      }
+
+      if (filters.category !== "all") {
+        query = query.eq('category', filters.category);
+      }
+
+      if (filters.search) {
+        query = query.or(
+          `subject.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
+        );
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
-
-      // Transform the data to match your expected format
-      const transformedData = data?.map(ticket => ({
-        ...ticket,
-        branch: ticket.branch?.branch_name,
-        category: ticket.category || null,
-        services: ticket.services?.service_name,
-        subcategory: ticket.subcategory?.subcategory_name,
-        network: ticket.network?.network_name,
-        priority: ticket.priority,
-        status: ticket.status?.status_name,
-        assignee: ticket.assignee?.assignee_name,
-        profile: ticket.profile // This should already be correct if profiles.name exists
-      })) || [];
-
-      setTickets(transformedData);
+      setTickets(data || []);
     } catch (error) {
       console.error('Error fetching tickets:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchFilteredTickets = async (userId: string, filters: any) => {
+    return fetchTicketsByUser(userId, filters);
+  };
+
   useEffect(() => {
     fetchDropdownOptions();
   }, []);
@@ -157,6 +174,7 @@ export const useTickets = (userId?: string) => {
     dropdownOptions,
     updateTicketStatus,
     updateTicketAssignee,
-    fetchTickets: () => userId ? fetchTicketsByUser(userId) : null
+    fetchTickets: (filters?: any) => userId ? fetchFilteredTickets(userId, filters) : null,
+    fetchTicketsByUser
   };
 };

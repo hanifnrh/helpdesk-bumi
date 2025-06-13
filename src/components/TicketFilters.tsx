@@ -118,20 +118,11 @@ export const TicketFilters = ({
       {/* Active Filter Tags */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2">
-          {activeFilters.search && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              Search: {activeFilters.search}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-red-500"
-                onClick={() => onSearchChange("")}
-              />
-            </Badge>
-          )}
           {activeFilters.status && activeFilters.status !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Status:{" "}
               {dropdownOptions.statuses.find(
-                (s) => s.name.toLowerCase() === activeFilters.status
+                (s) => s.id === activeFilters.status
               )?.name || activeFilters.status}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
@@ -139,11 +130,12 @@ export const TicketFilters = ({
               />
             </Badge>
           )}
+
           {activeFilters.priority && activeFilters.priority !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Priority:{" "}
               {dropdownOptions.priorities.find(
-                (p) => p.name.toLowerCase() === activeFilters.priority
+                (p) => p.id === activeFilters.priority
               )?.name || activeFilters.priority}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
@@ -151,11 +143,12 @@ export const TicketFilters = ({
               />
             </Badge>
           )}
+
           {activeFilters.category && activeFilters.category !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Category:{" "}
               {dropdownOptions.categories.find(
-                (c) => c.name.toLowerCase() === activeFilters.category
+                (c) => c.id === activeFilters.category
               )?.name || activeFilters.category}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
