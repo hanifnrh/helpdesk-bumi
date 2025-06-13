@@ -2,7 +2,7 @@ import { supabase } from '@/lib/utils/supabase';
 import { Ticket } from '@/types/ticket';
 import { useEffect, useState } from 'react';
 
-export const useTickets = (userId?: string) => {
+export const useUserTickets = (userId: string) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [dropdownOptions, setDropdownOptions] = useState({
@@ -56,7 +56,7 @@ export const useTickets = (userId?: string) => {
     }
   };
 
-  const fetchTicketsByUser = async (userId: string, filters = {
+  const fetchTickets = async (filters = {
     search: "",
     status: "all",
     priority: "all",
@@ -64,7 +64,6 @@ export const useTickets = (userId?: string) => {
   }) => {
     setLoading(true);
     try {
-      // Base query
       let query = supabase
         .from('ticket')
         .select(`
@@ -82,19 +81,15 @@ export const useTickets = (userId?: string) => {
         .eq('profile', userId)
         .order('created_at', { ascending: false });
 
-      // Apply filters
       if (filters.status !== "all") {
         query = query.eq('status', filters.status);
       }
-
       if (filters.priority !== "all") {
         query = query.eq('priority', filters.priority);
       }
-
       if (filters.category !== "all") {
         query = query.eq('category', filters.category);
       }
-
       if (filters.search) {
         query = query.or(
           `subject.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
@@ -102,7 +97,6 @@ export const useTickets = (userId?: string) => {
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
       setTickets(data || []);
     } catch (error) {
@@ -112,29 +106,12 @@ export const useTickets = (userId?: string) => {
     }
   };
 
-  const fetchFilteredTickets = async (userId: string, filters: any) => {
-    return fetchTicketsByUser(userId, filters);
-  };
-
-  useEffect(() => {
-    fetchDropdownOptions();
-  }, []);
-
-  useEffect(() => {
-    if (userId) {
-      fetchTicketsByUser(userId);
-    }
-  }, [userId]);
-
   const createTicket = async (ticketData: any) => {
     setLoading(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) throw new Error("Not authenticated");
-
       const completeData = {
         ...ticketData,
-        profile: session.user.id,
+        profile: userId,
         status: ticketData.status || 1,
         priority: ticketData.priority || 2,
         created_at: new Date().toISOString()
@@ -147,7 +124,7 @@ export const useTickets = (userId?: string) => {
         .single();
 
       if (error) throw error;
-      if (userId) fetchTicketsByUser(userId); // Refresh tickets after creation
+      await fetchTickets();
       return data;
     } catch (error) {
       console.error('Ticket creation failed:', error);
@@ -159,13 +136,13 @@ export const useTickets = (userId?: string) => {
 
   const updateTicketStatus = async (ticketId: string, status: Ticket["status"]) => {
     await supabase.from("ticket").update({ status }).eq("id", ticketId);
-    if (userId) fetchTicketsByUser(userId);
+    await fetchTickets();
   };
 
-  const updateTicketAssignee = async (ticketId: string, assignee: string) => {
-    await supabase.from("ticket").update({ assignee }).eq("id", ticketId);
-    if (userId) fetchTicketsByUser(userId);
-  };
+  useEffect(() => {
+    fetchDropdownOptions();
+    fetchTickets();
+  }, [userId]);
 
   return {
     tickets,
@@ -173,8 +150,6 @@ export const useTickets = (userId?: string) => {
     createTicket,
     dropdownOptions,
     updateTicketStatus,
-    updateTicketAssignee,
-    fetchTickets: (filters?: any) => userId ? fetchFilteredTickets(userId, filters) : null,
-    fetchTicketsByUser
+    fetchTickets
   };
 };

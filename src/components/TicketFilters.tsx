@@ -43,7 +43,7 @@ export const TicketFilters = ({
   );
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4">
+    <div className="bg-white dmsans-regular p-4 rounded-lg border border-gray-200 space-y-4">
       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
         <Filter className="h-4 w-4" />
         Filters
@@ -77,11 +77,11 @@ export const TicketFilters = ({
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="all" className="dmsans-light">All Statuses</SelectItem>
             {[...dropdownOptions.statuses]
               .sort((a, b) => Number(a.id) - Number(b.id))
               .map((status) => (
-                <SelectItem key={status.id} value={status.id}>
+                <SelectItem key={status.id} value={status.id} className="dmsans-light">
                   {status.name}
                 </SelectItem>
               ))}
@@ -93,9 +93,9 @@ export const TicketFilters = ({
             <SelectValue placeholder="All Priorities" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="all" className="dmsans-light">All Priorities</SelectItem>
             {dropdownOptions.priorities.map((priority) => (
-              <SelectItem key={priority.id} value={priority.id}>
+              <SelectItem key={priority.id} value={priority.id} className="dmsans-light">
                 {priority.name}
               </SelectItem>
             ))}
@@ -107,9 +107,9 @@ export const TicketFilters = ({
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all" className="dmsans-light">All Categories</SelectItem>
             {dropdownOptions.categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
+              <SelectItem key={category.id} value={category.id} className="dmsans-light">
                 {category.name}
               </SelectItem>
             ))}

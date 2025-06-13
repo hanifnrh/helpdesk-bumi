@@ -11,24 +11,24 @@ interface TicketCardProps {
 
 // Map status IDs to display values
 const statusMap: Record<number, { text: string; color: string }> = {
-  1: { text: "OPEN", color: "bg-blue-100 text-blue-500" },
+  1: { text: "OPEN", color: "bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-600 transition-all" },
   2: {
     text: "IN PROGRESS",
-    color: "bg-yellow-100 text-yellow-500",
+    color: "bg-yellow-100 text-yellow-500 hover:bg-yellow-200 hover:text-yellow-600 transition-all",
   },
   3: {
     text: "RESOLVED",
-    color: "bg-green-100 text-green-500",
+    color: "bg-green-100 text-green-500 hover:bg-green-200 hover:text-green-600 transition-all",
   },
-  4: { text: "CLOSED", color: "bg-gray-100 text-gray-500" },
+  4: { text: "CLOSED", color: "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-600 transition-all" },
 };
 
 // Map priority IDs to display values
 const priorityMap: Record<number, { text: string; color: string }> = {
-  1: { text: "LOW", color: "bg-green-100 text-green-500" },
-  2: { text: "MEDIUM", color: "bg-blue-100 text-blue-500" },
-  3: { text: "HIGH", color: "bg-orange-100 text-orange-500" },
-  4: { text: "CRITICAL", color: "bg-red-100 text-red-500" },
+  1: { text: "LOW", color: "bg-green-100 text-green-500 hover:bg-green-200 hover:text-green-600 transition-all" },
+  2: { text: "MEDIUM", color: "bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-600 transition-all" },
+  3: { text: "HIGH", color: "bg-orange-100 text-orange-500 hover:bg-orange-200 hover:text-orange-600 transition-all" },
+  4: { text: "CRITICAL", color: "bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 transition-all" },
 };
 
 export const TicketCard = ({ ticket, onClick }: TicketCardProps) => {
@@ -78,8 +78,11 @@ export const TicketCard = ({ ticket, onClick }: TicketCardProps) => {
     <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1" onClick={() => onClick(ticket)}>
-            <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+          <div
+            className="flex-1"
+            onClick={() => onClick(ticket)}
+          >
+            <CardTitle className="text-lg text-gray-900 group-hover:text-blue-600 transition-all">
               {ticket.title || "No title"}
             </CardTitle>
             <p className="text-sm text-gray-600 mt-1 line-clamp-2">
@@ -89,7 +92,7 @@ export const TicketCard = ({ ticket, onClick }: TicketCardProps) => {
           <Badge
             className={`${
               priorityInfo?.color || "bg-gray-100 text-gray-800"
-            } font-medium ml-3`}
+            } font-semibold ml-3`}
           >
             {priorityInfo?.text || "N/A"}
           </Badge>

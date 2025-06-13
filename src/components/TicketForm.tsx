@@ -2,6 +2,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/utils/supabase";
 import { TicketFormData } from "@/types/ticket";
+import { CloudUpload } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./ui/button";
@@ -115,12 +116,14 @@ export const TicketForm = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white dmsans-regular rounded-lg shadow p-6">
       <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Branch */}
           <div className="space-y-2">
-            <Label htmlFor="branch">Branch</Label>
+            <Label htmlFor="branch">
+              Branch <span className="text-red-500">*</span>
+            </Label>
             <Select
               onValueChange={(value) => setValue("branch", Number(value))}
               {...register("branch", { required: "Branch is required" })}
@@ -130,7 +133,11 @@ export const TicketForm = ({
               </SelectTrigger>
               <SelectContent>
                 {dropdownOptions.branches.map((branch) => (
-                  <SelectItem key={branch.id} value={branch.id.toString()}>
+                  <SelectItem
+                    key={branch.id}
+                    value={branch.id.toString()}
+                    className="dmsans-light"
+                  >
                     {branch.name}
                   </SelectItem>
                 ))}
@@ -143,7 +150,9 @@ export const TicketForm = ({
 
           {/* Category */}
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">
+              Category <span className="text-red-500">*</span>
+            </Label>
             <Select
               onValueChange={(value) => setValue("category", Number(value))}
               {...register("category", { required: "Category is required" })}
@@ -153,7 +162,11 @@ export const TicketForm = ({
               </SelectTrigger>
               <SelectContent>
                 {dropdownOptions.categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
+                  <SelectItem
+                    key={category.id}
+                    value={category.id.toString()}
+                    className="dmsans-light"
+                  >
                     {category.name}
                   </SelectItem>
                 ))}
@@ -166,7 +179,9 @@ export const TicketForm = ({
 
           {/* Service */}
           <div className="space-y-2">
-            <Label htmlFor="services">Service</Label>
+            <Label htmlFor="services">
+              Service <span className="text-red-500">*</span>
+            </Label>
             <Select
               onValueChange={(value) => setValue("services", Number(value))}
               {...register("services", { required: "Service is required" })}
@@ -176,7 +191,11 @@ export const TicketForm = ({
               </SelectTrigger>
               <SelectContent>
                 {dropdownOptions.services.map((service) => (
-                  <SelectItem key={service.id} value={service.id.toString()}>
+                  <SelectItem
+                    key={service.id}
+                    value={service.id.toString()}
+                    className="dmsans-light"
+                  >
                     {service.name}
                   </SelectItem>
                 ))}
@@ -202,6 +221,7 @@ export const TicketForm = ({
                   <SelectItem
                     key={subcategory.id}
                     value={subcategory.id.toString()}
+                    className="dmsans-light"
                   >
                     {subcategory.name}
                   </SelectItem>
@@ -212,7 +232,7 @@ export const TicketForm = ({
 
           {/* Network */}
           <div className="space-y-2">
-            <Label htmlFor="network">Network</Label>
+            <Label htmlFor="network">Network (optional)</Label>
             <Select
               onValueChange={(value) => setValue("network", Number(value))}
               {...register("network")}
@@ -222,7 +242,11 @@ export const TicketForm = ({
               </SelectTrigger>
               <SelectContent>
                 {dropdownOptions.networks.map((network) => (
-                  <SelectItem key={network.id} value={network.id.toString()}>
+                  <SelectItem
+                    key={network.id}
+                    value={network.id.toString()}
+                    className="dmsans-light"
+                  >
                     {network.name}
                   </SelectItem>
                 ))}
@@ -232,7 +256,9 @@ export const TicketForm = ({
 
           {/* Priority */}
           <div className="space-y-2">
-            <Label htmlFor="priority">Priority</Label>
+            <Label htmlFor="priority">
+              Priority <span className="text-red-500">*</span>
+            </Label>
             <Select
               onValueChange={(value) => setValue("priority", Number(value))}
               {...register("priority", { required: "Priority is required" })}
@@ -247,6 +273,7 @@ export const TicketForm = ({
                     <SelectItem
                       key={priority.id}
                       value={priority.id.toString()}
+                      className="dmsans-light"
                     >
                       {priority.name}
                     </SelectItem>
@@ -261,7 +288,9 @@ export const TicketForm = ({
 
         {/* Subject */}
         <div className="space-y-2">
-          <Label htmlFor="subject">Subject</Label>
+          <Label htmlFor="subject">
+            Subject <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="subject"
             {...register("subject", { required: "Subject is required" })}
@@ -274,7 +303,9 @@ export const TicketForm = ({
 
         {/* Description */}
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">
+            Description <span className="text-red-500">*</span>
+          </Label>
           <Textarea
             id="description"
             {...register("description", {
@@ -282,6 +313,7 @@ export const TicketForm = ({
             })}
             placeholder="Provide detailed information about your issue"
             rows={5}
+            className="dmsans-light"
           />
           {errors.description && (
             <p className="text-sm text-red-500">{errors.description.message}</p>
@@ -291,15 +323,59 @@ export const TicketForm = ({
         {/* Attachment */}
         <div className="space-y-2">
           <Label htmlFor="attachment">Attachment (optional)</Label>
+
           <Input
             id="attachment"
             type="file"
-            onChange={handleFileChange}
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            className="hidden"
+            onChange={handleFileChange}
           />
-          <p className="text-sm text-gray-500">
-            Upload any relevant files (PDF, DOC, JPG, PNG)
-          </p>
+
+          {!file ? (
+            <div
+              onClick={() => document.getElementById("attachment")?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const droppedFile = e.dataTransfer.files?.[0];
+                if (droppedFile) {
+                  const fakeEvent = {
+                    target: { files: [droppedFile] },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>;
+                  handleFileChange(fakeEvent);
+                }
+              }}
+              className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition hover:bg-blue-50"
+            >
+              <CloudUpload className="text-muted-foreground"/>
+              <div className="text-muted-foreground text-sm">
+                Click or drag and drop a file here
+              </div>
+              <p className="text-xs text-gray-500">
+                Supported formats: PDF, DOC, JPG, PNG
+              </p>
+            </div>
+          ) : (
+            <div className="relative rounded-lg border p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="text-sm text-muted-foreground truncate">
+                  {file.name}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFile(null)}
+                  className="text-sm px-2 py-1 rounded-md bg-red-100 text-red-500 hover:text-red-600 hover:bg-red-200 transition-all"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tags */}
@@ -309,11 +385,12 @@ export const TicketForm = ({
             id="tags"
             {...register("tags")}
             placeholder="Comma-separated tags (e.g., urgent, hardware, software)"
+            className="dmsans-light"
           />
         </div>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={loading}>
+        <div className="flex justify-center">
+          <Button type="submit" disabled={loading} className="bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 transition-all font-semibold">
             {loading ? "Creating..." : "Create Ticket"}
           </Button>
         </div>

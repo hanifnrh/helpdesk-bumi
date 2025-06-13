@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import { supabase } from "@/lib/utils/supabase";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +15,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   loading: true,
   login: async () => false,
-  logout: async () => {},
+  logout: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -25,11 +24,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Initialize auth state
   useEffect(() => {
     setLoading(true);
 
-    // 1. First check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         handleUserSession(session.user);
@@ -38,7 +35,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    // 2. Set up auth state listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -56,26 +52,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Handle user session with profile data
   const handleUserSession = async (user: any) => {
     try {
-      // Fetch profile data
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
 
+      if (error) throw error;
+
       const userData = {
         ...user,
-        ...(profile || {}),
-        role: profile?.role || "user", // Default role
+        ...profile,
+        role: profile?.role || "user"
       };
 
       setUser(userData);
       setIsAuthenticated(true);
+      return userData.role;
     } catch (err) {
       console.error("Failed to fetch profile:", err);
-      // Fallback to basic user data if profile fetch fails
-      setUser({ ...user, role: "user" });
+      const userData = { ...user, role: "user" };
+      setUser(userData);
       setIsAuthenticated(true);
+      return "user"; // Default role
     } finally {
       setLoading(false);
     }
@@ -90,10 +89,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
 
-      await handleUserSession(data.user);
+      const role = await handleUserSession(data.user);
 
-      // Navigate based on role
-      const role = data.user?.role || user?.role || "user";
       navigate(role === "admin" ? "/admin/dashboard" : "/user/dashboard");
 
       return true;

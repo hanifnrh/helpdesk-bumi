@@ -1,71 +1,103 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Ticket } from '@/types/ticket';
-import { TicketCheck, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Ticket } from "@/types/ticket";
+import {
+  AlertTriangle,
+  CircleCheckBig,
+  Clock4,
+  FolderOpen,
+  TicketCheck,
+} from "lucide-react";
 
 interface TicketStatsProps {
   tickets: Ticket[];
 }
 
 export const TicketStats = ({ tickets }: TicketStatsProps) => {
+  // Helper function to get status ID (handles both object and number cases)
+  const getStatusId = (ticket: Ticket) => {
+    if (typeof ticket.status === "object") {
+      return ticket.status.id;
+    }
+    return ticket.status;
+  };
+
+  // Helper function to get priority ID (handles both object and number cases)
+  const getPriorityId = (ticket: Ticket) => {
+    if (typeof ticket.priority === "object") {
+      return ticket.priority.id;
+    }
+    return ticket.priority;
+  };
+
   const stats = {
     total: tickets.length,
-    open: tickets.filter(t => t.status === 'open').length,
-    inProgress: tickets.filter(t => t.status === 'in-progress').length,
-    resolved: tickets.filter(t => t.status === 'resolved').length,
-    critical: tickets.filter(t => t.priority === 'critical').length
+    open: tickets.filter((t) => getStatusId(t) === 1).length,
+    inProgress: tickets.filter((t) => getStatusId(t) === 2).length,
+    resolved: tickets.filter((t) => getStatusId(t) === 3).length,
+    critical: tickets.filter((t) => getPriorityId(t) === 4).length,
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Tickets</CardTitle>
-          <TicketCheck className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.total}</div>
-        </CardContent>
+      <Card className="flex items-center justify-between gap-2 p-4">
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center space-y-0 pb-2">
+            Total Tickets
+          </div>
+
+          <div className="text-2xl text-left font-bold">{stats.total}</div>
+        </div>
+        <TicketCheck className="w-6 h-auto text-muted-foreground" />
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Open</CardTitle>
-          <Clock className="h-4 w-4 text-blue-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-blue-600">{stats.open}</div>
-        </CardContent>
+      <Card className="flex items-center justify-between gap-2 p-4">
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center space-y-0 pb-2">Open</div>
+
+          <div className="text-2xl text-left font-bold text-blue-500">
+            {stats.open}
+          </div>
+        </div>
+        <FolderOpen className="w-6 h-auto text-blue-500" />
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-          <Clock className="h-4 w-4 text-yellow-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
-        </CardContent>
+      <Card className="flex items-center justify-between gap-2 p-4">
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center space-y-0 pb-2">
+            In Progress
+          </div>
+
+          <div className="text-2xl text-left font-bold text-yellow-500">
+            {stats.inProgress}
+          </div>
+        </div>
+        <Clock4 className="w-6 h-auto text-yellow-500" />
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-          <CheckCircle className="h-4 w-4 text-green-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
-        </CardContent>
+      <Card className="flex items-center justify-between gap-2 p-4">
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center space-y-0 pb-2">
+            Resolved
+          </div>
+
+          <div className="text-2xl text-left font-bold text-green-500">
+            {stats.resolved}
+          </div>
+        </div>
+        <CircleCheckBig className="w-6 h-auto text-green-500" />
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Critical</CardTitle>
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-600">{stats.critical}</div>
-        </CardContent>
+      <Card className="flex items-center justify-between gap-2 p-4">
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center space-y-0 pb-2">
+            Critical
+          </div>
+
+          <div className="text-2xl text-left font-bold text-red-500">
+            {stats.critical}
+          </div>
+        </div>
+        <AlertTriangle className="w-6 h-auto text-red-500" />
       </Card>
     </div>
   );

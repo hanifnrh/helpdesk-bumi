@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
-import { Loader2, LogIn, User } from "lucide-react";
+import { KeyRound, Loader2, LogIn } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -48,12 +48,13 @@ export const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-6">
+    <div className="flex flex-col min-h-screen dmsans-regular bg-gradient-to-br from-blue-50 via-white to-blue-200 items-center justify-center p-6">
+      <img src="/assets/logo-bumi.png" alt="Logo Bumi Auto" className="w-1/3 h-auto" />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <User className="h-8 w-8 text-blue-600" />
-            <CardTitle className="text-2xl">Helpdesk Login</CardTitle>
+            <KeyRound className="h-8 w-8 text-blue-600" />
+            <CardTitle className="text-2xl text-blue-600">Helpdesk Login</CardTitle>
           </div>
           <p className="text-gray-600">
             Sign in to access the ticketing system
@@ -87,7 +88,7 @@ export const Index = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-indigo-600 text-white hover:bg-indigo-700 transition-all" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

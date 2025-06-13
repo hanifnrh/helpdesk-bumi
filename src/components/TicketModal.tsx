@@ -56,15 +56,15 @@ export const TicketModal = ({
   const getStatusColor = (statusId: number) => {
     switch (statusId) {
       case 1:
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 cursor-pointer";
       case 2:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-100 text-yellow-500 hover:bg-yellow-200 hover:text-yellow-700 cursor-pointer";
       case 3:
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 text-green-500 hover:bg-green-200 hover:text-green-700 cursor-pointer";
       case 4:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-700 cursor-pointer";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 cursor-pointer";
     }
   };
 
@@ -72,15 +72,15 @@ export const TicketModal = ({
   const getPriorityColor = (priorityId: number) => {
     switch (priorityId) {
       case 1:
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-500 hover:bg-green-200 hover:text-green-700 cursor-pointer";
       case 2:
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 cursor-pointer";
       case 3:
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 text-orange-500 hover:bg-orange-200 hover:text-orange-700 cursor-pointer";
       case 4:
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-700 cursor-pointer";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 cursor-pointer";
     }
   };
 
@@ -121,7 +121,7 @@ export const TicketModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dmsans-regular">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900 pr-8">
             {ticket.subject || ticket.title || "No Title"}
@@ -137,7 +137,7 @@ export const TicketModal = ({
                   typeof ticket.priority === "object"
                     ? ticket.priority.id
                     : ticket.priority
-                )} font-medium`}
+                )} `}
               >
                 {getPriorityText(
                   typeof ticket.priority === "object"
@@ -159,11 +159,11 @@ export const TicketModal = ({
                     : ticket.status
                 )}
               </Badge>
-              <span className="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
+              <span className="text-sm text-zinc-500 bg-zinc-100 hover:text-zinc-700 hover:bg-zinc-200 px-3 py-1 rounded-full cursor-pointer">
                 {getDisplayName(ticket.category)}
               </span>
             </div>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 uppercase">
               #{ticket.id.slice(0, 8)}
             </span>
           </div>
@@ -224,13 +224,13 @@ export const TicketModal = ({
           {ticket.attachment && (
             <div className="space-y-2">
               <h3 className="font-medium text-gray-900">Attachment</h3>
-              <div className="bg-gray-50 p-3 rounded-lg flex items-center gap-2">
-                <FileText className="h-4 w-4 text-gray-500" />
+              <div className="bg-gray-50 hover:bg-blue-100 cursor-pointer p-3 text-blue-600 rounded-lg flex items-center gap-2">
+                <FileText className="h-4 w-4" />
                 <a
                   href={ticket.attachment}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm"
                 >
                   View Attachment
                 </a>
@@ -240,7 +240,7 @@ export const TicketModal = ({
 
           {/* Tags */}
           {tags.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2 cursor-pointer">
               <h3 className="font-medium text-gray-900 flex items-center gap-2">
                 <Tag className="h-4 w-4" />
                 Tags
@@ -249,7 +249,7 @@ export const TicketModal = ({
                 {tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-full"
+                    className="text-sm bg-orange-100 text-orange-500 px-3 py-1 rounded-full"
                   >
                     {tag}
                   </span>

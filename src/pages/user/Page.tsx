@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
-import { useTickets } from "@/hooks/useTickets";
+import { useUserTickets } from "@/hooks/useUserTickets";
 import { supabase } from "@/lib/utils/supabase";
 import { Ticket } from "@/types/ticket";
 import { LogOut, Plus, Ticket as TicketIcon } from "lucide-react";
@@ -35,8 +35,8 @@ const UserDashboard = () => {
     loading: ticketsLoading,
     createTicket,
     dropdownOptions,
-    fetchTickets
-  } = useTickets(user?.id);
+    fetchTickets,
+  } = useUserTickets(user?.id);
 
   const handleStatusFilter = (status: string) => {
     setFilters((prev) => ({ ...prev, status }));
@@ -55,11 +55,9 @@ const UserDashboard = () => {
 
   const handleSearchChange = (search: string) => {
     setFilters((prev) => ({ ...prev, search }));
-    // Add debounce if you want to avoid too many requests
     fetchTickets({ ...filters, search });
   };
 
-  // Update your clear filters function
   const clearFilters = () => {
     const newFilters = {
       search: "",
@@ -111,6 +109,42 @@ const UserDashboard = () => {
     setIsModalOpen(true);
   };
 
+  const handleStatusChange = async (ticketId: string, status: number) => {
+    try {
+      await supabase.from("ticket").update({ status }).eq("id", ticketId);
+      if (user?.id) fetchTickets(user.id);
+      toast({
+        title: "Success",
+        description: "Ticket status updated",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAssigneeChange = async (ticketId: string, assignee: number) => {
+    try {
+      await supabase.from("ticket").update({ assignee }).eq("id", ticketId);
+      if (user?.id) fetchTickets(user.id);
+      toast({
+        title: "Success",
+        description: "Assignee updated",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update assignee",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     toast({
@@ -120,32 +154,38 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
+    <div className="min-h-screen dmsans-regular bg-gradient-to-br from-blue-50 via-white to-blue-100">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="text-center space-y-4 flex-1">
-            <div className="flex items-center justify-center gap-3">
-              <TicketIcon className="h-8 w-8 text-blue-600" />
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
-                Bumi Auto Helpdesk System
+        <div className="flex items-center justify-between py-4">
+          <div className="text-left space-y-4 flex-1">
+            <div className="flex items-center justify-left gap-3">
+              <img
+                src="/assets/logo-bumi.png"
+                alt="Bumi Logo"
+                width={50}
+                className="w-44 h-auto"
+              />
+              <h1 className="text-4xl dmsans-semibold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
+                Helpdesk System
               </h1>
             </div>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              My Support Tickets
-            </p>
           </div>
 
           <div className="flex items-center gap-4">
+            <p className="capitalize dmsans-regular bg-blue-100 text-blue-500 rounded-md px-3 py-1 text-sm">
+              {profile?.role}
+            </p>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Welcome back,</p>
-              <p>{profile?.name}</p>
-              <p>User</p>
+              <p className="text-sm text-gray-600 dmsans-regular">
+                Welcome back,
+              </p>
+              <p className="dmsans-regular">{profile?.name}</p>
             </div>
             <Button
               variant="outline"
               onClick={handleLogout}
-              className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              className="border-blue-200 text-blue-500 hover:bg-blue-50 hover:text-blue-700"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Logout
@@ -234,9 +274,8 @@ const UserDashboard = () => {
           ticket={selectedTicket}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onStatusChange={() => {}}
-          onAssigneeChange={() => {}}
-          isAdmin={false}
+          onStatusChange={handleStatusChange}
+          onAssigneeChange={handleAssigneeChange}
         />
       </div>
     </div>
