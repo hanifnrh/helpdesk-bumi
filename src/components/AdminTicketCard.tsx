@@ -10,7 +10,6 @@ import {
 import { Ticket } from "@/types/ticket";
 import { format } from "date-fns";
 import { Calendar, Tag, User } from "lucide-react";
-import { useEffect } from "react";
 
 interface AdminTicketCardProps {
     ticket: Ticket;
@@ -19,15 +18,13 @@ interface AdminTicketCardProps {
     onAssigneeChange: (ticketId: string, assignee: number) => void;
 }
 
-// Map status IDs to display values
 const statusMap: Record<number, { text: string; color: string }> = {
     1: { text: "OPEN", color: "bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 cursor-pointer transition-all" },
     2: { text: "IN PROGRESS", color: "bg-yellow-100 text-yellow-500 hover:bg-yellow-200 hover:text-yellow-700 cursor-pointer transition-all" },
     3: { text: "RESOLVED", color: "bg-green-100 text-green-500 hover:bg-green-200 hover:text-green-700 cursor-pointer transition-all" },
-    4: { text: "CLOSED", color: "bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-700 cursor-pointer transition-all" },
+    4: { text: "CLOSED", color: "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 cursor-pointer transition-all" },
 };
 
-// Map priority IDs to display values
 const priorityMap: Record<number, { text: string; color: string }> = {
     1: { text: "LOW", color: "bg-green-100 text-green-500 hover:bg-green-200 hover:text-green-700 cursor-pointer transition-all" },
     2: { text: "MEDIUM", color: "bg-blue-100 text-blue-500 hover:bg-blue-200 hover:text-blue-700 cursor-pointer transition-all" },
@@ -71,13 +68,6 @@ export const AdminTicketCard = ({
         return ticket.assignee.toString();
     };
 
-    useEffect(() => {
-        if (ticket) {
-            console.log("Ticket profile data:", ticket.profile);
-            console.log("Full ticket data:", ticket);
-        }
-    }, [ticket]);
-
     const tags = ticket.tags ? ticket.tags.split(",").map((t) => t.trim()) : [];
     const statusId = getStatusId();
     const priorityId = getPriorityId();
@@ -99,12 +89,11 @@ export const AdminTicketCard = ({
     };
 
     return (
-        <Card className="hover:shadow-lg transition-all duration-200">
+        <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer" onClick={() => onClick(ticket)}>
             <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                     <div
                         className="flex-1 cursor-pointer"
-                        onClick={() => onClick(ticket)}
                     >
                         <CardTitle className="text-lg text-gray-900 group-hover:text-blue-600 transition-all">
                             {ticket.title || ticket.subject || "No title"}

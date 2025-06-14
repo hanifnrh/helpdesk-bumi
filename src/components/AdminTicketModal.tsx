@@ -304,7 +304,7 @@ export const AdminTicketModal = ({
                                             className="flex items-center gap-2 text-sm group hover:underline hover:text-blue-600 transition-all cursor-pointer"
                                         >
                                             Email:
-                                            <span className="text-zinc-700 hover:text-blue-600 transition-all">
+                                            <span className="text-zinc-700 group-hover:text-blue-600 transition-all">
                                                 {getDisplayName(ticket.profile.email)}
                                             </span>
                                             <Mail className="h-4 w-4 text-zinc-700 group-hover:text-blue-600" />
@@ -317,7 +317,7 @@ export const AdminTicketModal = ({
                                             className="flex items-center gap-2 text-sm group hover:underline hover:text-blue-600 transition-all"
                                         >
                                             Phone:
-                                            <span className="text-zinc-700 hover:text-blue-600 transition-all">
+                                            <span className="text-zinc-700 group-hover:text-blue-600 transition-all">
                                                 {getDisplayName(ticket.profile.phone)}
                                             </span>
                                             <Phone className="h-4 w-4 text-zinc-700 group-hover:text-blue-600" />

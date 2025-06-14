@@ -5,13 +5,14 @@ import { TicketForm } from "@/components/TicketForm";
 import { TicketStats } from "@/components/TicketStats";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserManagement } from "@/components/UserManagement";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminTickets } from "@/hooks/useAdminTickets";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/utils/supabase";
 import { Ticket } from "@/types/ticket";
-import { LogOut, Plus, Ticket as TicketIcon } from "lucide-react";
+import { LogOut, Plus, Ticket as TicketIcon, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -170,7 +171,7 @@ const AdminDashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between py-4">
           <div className="text-left space-y-4 flex-1">
-            <div className="flex items-center justify-left gap-3">
+            <div className="flex flex-col items-start justify-center gap-3">
               <img
                 src="/assets/logo-bumi.png"
                 alt="Bumi Logo"
@@ -210,7 +211,7 @@ const AdminDashboard = () => {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex items-center justify-between">
-            <TabsList className="grid w-auto grid-cols-2 bg-white border border-blue-200">
+            <TabsList className="grid w-auto grid-cols-3 bg-white border border-blue-200">
               <TabsTrigger
                 value="tickets"
                 className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
@@ -224,6 +225,13 @@ const AdminDashboard = () => {
               >
                 <Plus className="h-4 w-4" />
                 Create Ticket
+              </TabsTrigger>
+              <TabsTrigger
+                value="users"
+                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              >
+                <User className="h-4 w-4" />
+                User Management
               </TabsTrigger>
             </TabsList>
           </div>
@@ -279,6 +287,10 @@ const AdminDashboard = () => {
               loading={loading}
               dropdownOptions={dropdownOptions}
             />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <UserManagement />
           </TabsContent>
         </Tabs>
 

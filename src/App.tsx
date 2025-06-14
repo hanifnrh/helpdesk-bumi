@@ -10,6 +10,7 @@ import { PrivateRoute } from "./components/PrivateRoute";
 import './index.css';
 import { Index } from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { ResetPassword } from "./pages/ResetPassword";
 import AdminDashboard from "./pages/admin/Page";
 import UserDashboard from "./pages/user/Page";
 
@@ -24,13 +25,13 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
-            
+
             {/* Protected Routes */}
             <Route element={<PrivateRoute />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/user/dashboard" element={<UserDashboard />} />
             </Route>
-            
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

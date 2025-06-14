@@ -1,54 +1,109 @@
-
-import { useState, useEffect } from 'react';
-import { User, UserFormData } from '@/types/auth';
+import { supabase } from "@/lib/utils/supabase";
+import { useState } from "react";
 
 export const useUsers = () => {
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
 
-  // Mock users for demonstration
-  useEffect(() => {
-    const mockUsers: User[] = [
-      { id: '1', email: 'admin@company.com', password: 'admin123', name: 'Admin User', phone: '+6281234567890', role: 'admin' },
-      { id: '2', email: 'user@company.com', password: 'kerjaibadah', name: 'Regular User', phone: '+6281234567891', role: 'user' },
-      { id: '3', email: 'alice@company.com', password: 'kerjaibadah', name: 'Alice Johnson', phone: '+6281234567892', role: 'user' },
-    ];
-    setUsers(mockUsers);
-  }, []);
-
-  const addUser = (userData: UserFormData) => {
+  const fetchUsers = async () => {
     setLoading(true);
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      ...userData,
-      password: 'kerjaibadah' // Default password
-    };
-    
-    setTimeout(() => {
-      setUsers(prev => [...prev, newUser]);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+
+      if (error) throw error;
+      setUsers(data);
+    } catch (error) {
+      console.error('Error fetching users:', error.message);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
-  const removeUser = (userId: string) => {
-    setUsers(prev => prev.filter(user => user.id !== userId));
+  const addUser = async (userData) => {
+    setLoading(true);
+    try {
+      // First sign up the user with a default password
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: 'temporary-password', // This will be reset
+        email_confirm: true, // Skip email confirmation
+        user_metadata: {
+          name: userData.name,
+          role: userData.role
+        }
+      });
+
+      if (authError) throw authError;
+
+      // Then insert their profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          role: userData.role
+        });
+
+      if (profileError) throw profileError;
+
+      // Send password reset email
+      const { error: resetError } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: userData.email,
+      });
+
+      if (resetError) throw resetError;
+
+      return authData.user;
+    } catch (error) {
+      console.error('Error adding user:', error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const resetUserPassword = (userId: string) => {
-    setUsers(prev => 
-      prev.map(user => 
-        user.id === userId 
-          ? { ...user, password: 'kerjaibadah' }
-          : user
-      )
-    );
+  const removeUser = async (userId) => {
+    setLoading(true);
+    try {
+      // First delete from auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      if (authError) throw authError;
+
+      // Then delete from profiles
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      // Refresh user list
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error removing user:', error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return {
-    users,
-    loading,
-    addUser,
-    removeUser,
-    resetUserPassword
+  const resetUserPassword = async (email) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error resetting password:', error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
+
+  return { users, loading, addUser, removeUser, resetUserPassword, fetchUsers };
 };

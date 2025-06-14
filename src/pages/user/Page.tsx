@@ -159,7 +159,7 @@ const UserDashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between py-4">
           <div className="text-left space-y-4 flex-1">
-            <div className="flex items-center justify-left gap-3">
+            <div className="flex flex-col items-start justify-center gap-3">
               <img
                 src="/assets/logo-bumi.png"
                 alt="Bumi Logo"

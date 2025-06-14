@@ -14,9 +14,13 @@ export interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-export interface UserFormData {
-  email: string;
+export type UserRole = 'admin' | 'user';
+
+export interface UserProfile {
+  id: string;
   name: string;
-  phone: string; // Phone number with +62 code
-  role: 'admin' | 'user';
+  email: string;
+  phone: string;
+  role: UserRole;
+  created_at: string;
 }

@@ -75,12 +75,11 @@ export const TicketCard = ({ ticket, onClick }: TicketCardProps) => {
   })();
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group" onClick={() => onClick(ticket)}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div
             className="flex-1"
-            onClick={() => onClick(ticket)}
           >
             <CardTitle className="text-lg text-gray-900 group-hover:text-blue-600 transition-all">
               {ticket.title || "No title"}
