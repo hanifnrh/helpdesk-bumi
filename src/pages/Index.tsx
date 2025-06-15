@@ -48,7 +48,7 @@ export const Index = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen dmsans-regular bg-gradient-to-br from-blue-50 via-white to-blue-200 items-center justify-center p-6">
+    <div className="flex flex-col min-h-screen dmsans-regular bg-gradient-to-br from-blue-50 via-white to-blue-200 items-center justify-center p-6 gap-6">
       <img src="/assets/logo-bumi.png" alt="Logo Bumi Auto" className="w-1/3 h-auto" />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">

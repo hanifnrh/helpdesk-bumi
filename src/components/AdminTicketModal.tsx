@@ -342,6 +342,15 @@ export const AdminTicketModal = ({
                                             : "N/A"}
                                     </span>
                                 </div>
+                                <div className="flex items-center gap-2 text-sm ">
+                                    <Calendar className="h-4 w-4 text-gray-400" />
+                                    <span className="">Updated:</span>
+                                    <span className="font-medium">
+                                        {ticket.updated_at
+                                            ? format(new Date(ticket.updated_at), "MMM dd, yyyy HH:mm")
+                                            : "N/A"}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 

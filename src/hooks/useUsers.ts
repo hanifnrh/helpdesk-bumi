@@ -24,57 +24,52 @@ export const useUsers = () => {
   const addUser = async (userData) => {
     setLoading(true);
     try {
-      // First sign up the user with a default password
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      const randomPassword = Math.random().toString(36).slice(-8);
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
-        password: 'temporary-password', // This will be reset
-        email_confirm: true, // Skip email confirmation
-        user_metadata: {
-          name: userData.name,
-          role: userData.role
+        password: randomPassword,
+        options: {
+          data: {
+            name: userData.name,
+            phone: userData.phone,
+            email: userData.email,
+            role: userData.role || 'user',
+            department: userData.department || null,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/reset-password`
         }
       });
 
       if (authError) throw authError;
 
-      // Then insert their profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          role: userData.role
-        });
-
-      if (profileError) throw profileError;
-
-      // Send password reset email
-      const { error: resetError } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: userData.email,
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
       });
 
       if (resetError) throw resetError;
 
-      return authData.user;
+      await fetchUsers();
     } catch (error) {
-      console.error('Error adding user:', error.message);
-      throw error;
+      throw new Error(error.message || "Failed to create user");
     } finally {
       setLoading(false);
     }
   };
 
-  const removeUser = async (userId) => {
+  const removeUser = async (userId: string) => {
     setLoading(true);
     try {
-      // First delete from auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      if (authError) throw authError;
+      // First try to delete the auth user
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (authError) throw authError;
+      } catch (authError) {
+        console.warn("Couldn't delete auth user, proceeding with profile deletion:", authError.message);
+        // Continue even if auth deletion fails
+      }
 
-      // Then delete from profiles
+      // Then delete the profile (this should always work)
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -82,11 +77,11 @@ export const useUsers = () => {
 
       if (profileError) throw profileError;
 
-      // Refresh user list
       await fetchUsers();
-    } catch (error) {
-      console.error('Error removing user:', error.message);
-      throw error;
+      return { success: true, message: "User deleted successfully" };
+    } catch (error: any) {
+      console.error('Error deleting user:', error.message);
+      return { success: false, message: error.message };
     } finally {
       setLoading(false);
     }

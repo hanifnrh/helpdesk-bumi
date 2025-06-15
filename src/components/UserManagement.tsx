@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
-import { Mail, Phone, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { Key, Mail, Phone, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const UserManagement = () => {
@@ -17,13 +17,30 @@ export const UserManagement = () => {
     email: '',
     name: '',
     phone: '+62',
-    role: 'user'
+    role: 'user',
+    department: ''
   });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleResetPassword = async (userEmail: string, userName: string) => {
+    try {
+      await resetUserPassword(userEmail);
+      toast({
+        title: "Password Reset Sent",
+        description: `A password reset link has been sent to ${userName}'s email (${userEmail}).`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send password reset",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +55,7 @@ export const UserManagement = () => {
 
     try {
       await addUser(formData);
-      setFormData({ email: '', name: '', phone: '+62', role: 'user' });
+      setFormData({ email: '', name: '', phone: '+62', role: 'user', department: '' });
       setIsModalOpen(false);
       toast({
         title: "User Created",
@@ -64,22 +81,6 @@ export const UserManagement = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to remove user",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleResetPassword = async (userId: string, userEmail: string) => {
-    try {
-      await resetUserPassword(userEmail);
-      toast({
-        title: "Password Reset",
-        description: `Password reset email has been sent to ${userEmail}.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to reset password",
         variant: "destructive",
       });
     }
@@ -113,7 +114,7 @@ export const UserManagement = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-gray-900">{user.name}</h3>
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                      <Badge variant={user.role === 'admin' ? 'admin' : 'user'}>
                         {user.role}
                       </Badge>
                     </div>
@@ -132,15 +133,14 @@ export const UserManagement = () => {
                     <div className="flex gap-2 pt-2">
                       <Button
                         variant="outline"
-                        size="sm"
-                        onClick={() => handleResetPassword(user.id, user.email)}
-                        className="flex-1"
+                        size="icon"
+                        className="h-auto w-full"
+                        onClick={() => handleResetPassword(user.email, user.name)}
                         disabled={loading}
                       >
-                        <RotateCcw className="h-3 w-3 mr-1" />
                         Reset Password
+                        <Key className="h-3 w-3" />
                       </Button>
-
                       <Button
                         variant="destructive"
                         size="sm"
@@ -198,6 +198,16 @@ export const UserManagement = () => {
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="+62812345678"
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="department">Department</Label>
+              <Input
+                id="department"
+                value={formData.department}
+                onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                placeholder="Enter department"
               />
             </div>
 

@@ -29,8 +29,8 @@ export const TicketModal = ({
   ticket,
   isOpen,
   onClose,
-  onStatusChange = () => {},
-  onAssigneeChange = () => {},
+  onStatusChange = () => { },
+  onAssigneeChange = () => { },
   isAdmin = false,
 }: TicketModalProps) => {
   if (!ticket) return null;
@@ -206,6 +206,14 @@ export const TicketModal = ({
               </span>
               <p className="text-sm text-gray-900">
                 {format(new Date(ticket.created_at), "MMM dd, yyyy HH:mm")}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-gray-600">
+                Updated:
+              </span>
+              <p className="text-sm text-gray-900">
+                {format(new Date(ticket.updated_at), "MMM dd, yyyy HH:mm")}
               </p>
             </div>
           </div>

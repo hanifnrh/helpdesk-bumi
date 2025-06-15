@@ -1,22 +1,22 @@
-// pages/ResetPassword.tsx
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/utils/supabase';
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export const ResetPassword = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [searchParams] = useSearchParams();
-    const { toast } = useToast();
+    const location = useLocation();
     const navigate = useNavigate();
+    const { toast } = useToast();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (password !== confirmPassword) {
             toast({
@@ -24,11 +24,30 @@ export const ResetPassword = () => {
                 description: "Passwords don't match",
                 variant: "destructive",
             });
+            setLoading(false);
             return;
         }
 
-        setLoading(true);
         try {
+            // Extract token from URL hash
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+
+            if (!accessToken) {
+                throw new Error("Invalid reset link");
+            }
+
+            // Set the session (this will authenticate the user temporarily)
+            const { error: sessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken || '',
+            });
+
+            if (sessionError) throw sessionError;
+
+            // Now update the password
             const { error } = await supabase.auth.updateUser({
                 password,
             });
@@ -37,14 +56,14 @@ export const ResetPassword = () => {
 
             toast({
                 title: "Success",
-                description: "Password updated successfully",
-                variant: "default",
+                description: "Your password has been updated successfully",
             });
+
             navigate('/');
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: error.message || "Failed to update password",
+                description: error.message,
                 variant: "destructive",
             });
         } finally {
@@ -53,11 +72,11 @@ export const ResetPassword = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">
-                <h1 className="text-2xl font-bold">Reset Your Password</h1>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
+        <div className="flex dmsans-regular items-center justify-center min-h-screen">
+            <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-lg">
+                <h1 className="text-2xl font-bold text-center">Reset Password</h1>
+                <form onSubmit={handleResetPassword} className="space-y-6">
+                    <div className="space-y-2">
                         <Label htmlFor="password">New Password</Label>
                         <Input
                             id="password"
@@ -65,20 +84,22 @@ export const ResetPassword = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            minLength={6}
                         />
                     </div>
-                    <div>
-                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
                         <Input
                             id="confirmPassword"
                             type="password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
+                            minLength={6}
                         />
                     </div>
-                    <Button type="submit" disabled={loading} className="w-full">
-                        {loading ? 'Updating...' : 'Update Password'}
+                    <Button type="submit" className="w-full bg-indigo-600 font-semibold" disabled={loading}>
+                        {loading ? "Updating..." : "Update Password"}
                     </Button>
                 </form>
             </div>

@@ -17,6 +17,7 @@ export interface TicketFormData {
 export interface Ticket {
   id: string;
   created_at: string;
+  updated_at: string;
   title: string;
   subject: string;
   description: string;
