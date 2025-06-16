@@ -127,7 +127,7 @@ const AdminDashboard = () => {
       ));
       setSelectedTicket(prev => prev && prev.id === ticketId ? { ...prev, status } : prev);
 
-      await supabase.from("ticket").update({ status,  updated_at: new Date().toISOString() }).eq("id", ticketId);
+      await supabase.from("ticket").update({ status, updated_at: new Date().toISOString() }).eq("id", ticketId);
 
       toast({
         title: "Success",
@@ -143,14 +143,30 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAssigneeChange = async (ticketId: string, assignee: number) => {
+  const handleAssigneeChange = async (ticketId: string, assigneeId: number) => {
     try {
-      setTickets(prevTickets => prevTickets.map(t =>
-        t.id === ticketId ? { ...t, assignee } : t
-      ));
-      setSelectedTicket(prev => prev && prev.id === ticketId ? { ...prev, assignee } : prev);
+      // Find the full assignee object from dropdownOptions
+      const newAssignee = dropdownOptions.assignees?.find(a => a.id === assigneeId) || assigneeId;
 
-      await supabase.from("ticket").update({ assignee,  updated_at: new Date().toISOString() }).eq("id", ticketId);
+      // Update the ticket in your state with the full assignee object
+      setTickets(prevTickets => prevTickets.map(t =>
+        t.id === ticketId
+          ? { ...t, assignee: newAssignee }
+          : t
+      ));
+
+      // Update the selected ticket in modal if it's the same ticket
+      setSelectedTicket(prev =>
+        prev && prev.id === ticketId
+          ? { ...prev, assignee: newAssignee }
+          : prev
+      );
+
+      // Call your API to update the assignee
+      await supabase.from("ticket").update({
+        assignee: assigneeId,
+        updated_at: new Date().toISOString()
+      }).eq("id", ticketId);
 
       toast({
         title: "Success",
@@ -307,6 +323,7 @@ const AdminDashboard = () => {
                     onClick={handleTicketClick}
                     onStatusChange={handleStatusChange}
                     onAssigneeChange={handleAssigneeChange}
+                    dropdownOptions={dropdownOptions}
                   />
                 ))}
               </div>

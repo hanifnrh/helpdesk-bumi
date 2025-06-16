@@ -1,9 +1,12 @@
 import { supabase } from "@/lib/utils/supabase";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const useUsers = () => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
+  const [dropdownOptions, setDropdownOptions] = useState({
+    departments: [] as { id: number; name: string }[]
+  });
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -100,7 +103,7 @@ export const useUsers = () => {
     }
   };
 
-  const updateUserProfile = async (updates: { name?: string; phone?: string; department?: string }) => {
+  const updateUserProfile = async (updates: { name?: string; phone?: string; department?: number }) => {
     setLoading(true);
     try {
       // Get current user ID
@@ -124,6 +127,35 @@ export const useUsers = () => {
       setLoading(false);
     }
   };
-  
-  return { users, loading, addUser, removeUser, resetUserPassword, fetchUsers, updateUserProfile };
+
+  const fetchDropdownOptions = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch departments
+      const { data: deptData, error: deptError } = await supabase
+        .from('department')
+        .select('id, department_name')
+        .order('department_name', { ascending: true });
+
+      if (deptError) throw deptError;
+
+      setDropdownOptions({
+        departments: deptData?.map(dept => ({
+          id: dept.id,
+          name: dept.department_name
+        })) || []
+      });
+    } catch (error) {
+      console.error('Error fetching dropdown options:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDropdownOptions();
+  }, []);
+
+  return { users, loading, addUser, removeUser, resetUserPassword, fetchUsers, updateUserProfile, dropdownOptions, fetchDropdownOptions };
 };

@@ -16,6 +16,10 @@ interface AdminTicketCardProps {
     onClick: (ticket: Ticket) => void;
     onStatusChange: (ticketId: string, status: number) => void;
     onAssigneeChange: (ticketId: string, assignee: number) => void;
+    dropdownOptions?: {
+        assignees?: any[];
+        statuses?: any[];
+    };
 }
 
 const statusMap: Record<number, { text: string; color: string }> = {
@@ -37,6 +41,7 @@ export const AdminTicketCard = ({
     onClick,
     onStatusChange,
     onAssigneeChange,
+    dropdownOptions,
 }: AdminTicketCardProps) => {
 
     const getDisplayName = (field: any) => {
@@ -184,11 +189,13 @@ export const AdminTicketCard = ({
                                 <SelectValue placeholder="Select assignee" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="1">Unassigned</SelectItem>
-                                <SelectItem value="2">ICT Department</SelectItem>
-                                <SelectItem value="3">General Affair</SelectItem>
-                                <SelectItem value="4">Human Capital</SelectItem>
-                                <SelectItem value="5">Others</SelectItem>
+                                {dropdownOptions?.assignees
+                                    ?.sort((a, b) => a.id - b.id)
+                                    .map((assignee) => (
+                                        <SelectItem key={assignee.id} value={assignee.id.toString()}>
+                                            {assignee.name}
+                                        </SelectItem>
+                                    ))}
                             </SelectContent>
                         </Select>
                     </div>

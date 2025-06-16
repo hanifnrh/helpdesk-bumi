@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -10,27 +11,51 @@ import { useLocation, useNavigate } from 'react-router-dom';
 export const EditProfilePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { updateUserProfile } = useUsers();
+    const { updateUserProfile, dropdownOptions, loading: dropdownsLoading } = useUsers();
     const { toast } = useToast();
 
-    // Get profile data from location state
+    // State for profile data
     const [profile, setProfile] = useState(location.state?.profile || {
         id: '',
         name: '',
         phone: '',
         department: ''
     });
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
             const { data: { user } } = await supabase.auth.getUser();
+
             if (user) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('name, phone, department')
-                    .eq('id', user.id)
-                    .single();
-                if (data) setProfile(data);
+                try {
+                    setLoading(true);
+
+                    // Fetch profile data
+                    const { data: profileData, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('name, phone, department')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profileError) throw profileError;
+
+                    if (profileData) {
+                        setProfile({
+                            ...profileData,
+                            department: profileData.department?.toString() || ''
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching profile:', error);
+                    toast({
+                        title: "Error",
+                        description: "Failed to load profile data",
+                        variant: "destructive",
+                    });
+                } finally {
+                    setLoading(false);
+                }
             }
         };
         fetchProfile();
@@ -39,10 +64,11 @@ export const EditProfilePage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            setLoading(true);
             await updateUserProfile({
                 name: profile.name,
                 phone: profile.phone,
-                department: profile.department
+                department: profile.department ? parseInt(profile.department) : null
             });
             toast({
                 title: "Success",
@@ -55,6 +81,8 @@ export const EditProfilePage = () => {
                 description: error.message || "Failed to update profile",
                 variant: "destructive",
             });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -81,10 +109,15 @@ export const EditProfilePage = () => {
                 </div>
                 <div>
                     <Label htmlFor="department">Department</Label>
-                    <Input
-                        id="department"
-                        value={profile.department}
-                        onChange={(e) => setProfile({ ...profile, department: e.target.value })}
+                    <Combobox
+                        options={dropdownOptions.departments.map(d => ({
+                            value: d.id.toString(),
+                            label: d.name
+                        }))}
+                        value={profile.department?.toString() || ""}
+                        onValueChange={(value) => setProfile({ ...profile, department: value })}
+                        placeholder="Select department"
+                        disabled={dropdownsLoading || loading}
                     />
                 </div>
                 <div className="flex gap-2 justify-end pt-4">
@@ -95,7 +128,13 @@ export const EditProfilePage = () => {
                     >
                         Cancel
                     </Button>
-                    <Button className='bg-emerald-100 text-emerald-500 hover:bg-emerald-200 hover:text-emerald-600' type="submit">Save Changes</Button>
+                    <Button
+                        className='bg-emerald-100 text-emerald-500 hover:bg-emerald-200 hover:text-emerald-600'
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? "Saving..." : "Save Changes"}
+                    </Button>
                 </div>
             </form>
         </div>
