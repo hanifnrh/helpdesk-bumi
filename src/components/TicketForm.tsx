@@ -6,6 +6,7 @@ import { CloudUpload } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./ui/button";
+import { Combobox } from "./ui/combobox";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import {
@@ -22,10 +23,10 @@ interface TicketFormProps {
   loading: boolean;
   dropdownOptions: {
     branches: { id: number; name: string }[];
-    categories: { id: number; name: string }[];
+    categories: { id: number; name: string; service_id?: number }[];
     services: { id: number; name: string }[];
     subcategories: { id: number; name: string; category_id?: number }[];
-    networks: { id: number; name: string }[];
+    networks: { id: number; name: string; category_id?: number }[];
     priorities: { id: number; name: string; level?: number }[];
   };
 }
@@ -45,10 +46,19 @@ export const TicketForm = ({
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const selectedCategory = watch("category");
+  const selectedService = watch("services");
 
   // Filter subcategories based on selected category
+  const filteredCategories = dropdownOptions.categories.filter(
+    (category) => category.service_id === Number(selectedService)
+  );
+
   const filteredSubcategories = dropdownOptions.subcategories.filter(
     (subcategory) => subcategory.category_id === Number(selectedCategory)
+  );
+
+  const filteredNetworks = dropdownOptions.networks.filter(
+    (network) => network.category_id === Number(selectedCategory)
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,13 +79,11 @@ export const TicketForm = ({
         } = await supabase.auth.getSession();
         if (sessionError || !session) throw new Error("Not authenticated");
 
-        // Create unique file path with user ID
         const fileExt = file.name.split(".").pop();
         const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
 
-        // Upload with error handling
         const { error: uploadError } = await supabase.storage
-          .from("attachment") // Double-check this name!
+          .from("attachment")
           .upload(fileName, file, {
             cacheControl: "3600",
             upsert: false,
@@ -124,56 +132,18 @@ export const TicketForm = ({
             <Label htmlFor="branch">
               Branch <span className="text-red-500">*</span>
             </Label>
-            <Select
+            <Combobox
+              options={dropdownOptions.branches.map(b => ({
+                value: b.id.toString(),
+                label: b.name
+              }))}
+              value={watch("branch")?.toString() || ""}
               onValueChange={(value) => setValue("branch", Number(value))}
-              {...register("branch", { required: "Branch is required" })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select branch" />
-              </SelectTrigger>
-              <SelectContent>
-                {dropdownOptions.branches.map((branch) => (
-                  <SelectItem
-                    key={branch.id}
-                    value={branch.id.toString()}
-                    className="dmsans-light"
-                  >
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Select branch"
+              disabled={loading}
+            />
             {errors.branch && (
               <p className="text-sm text-red-500">{errors.branch.message}</p>
-            )}
-          </div>
-
-          {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="category">
-              Category <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              onValueChange={(value) => setValue("category", Number(value))}
-              {...register("category", { required: "Category is required" })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {dropdownOptions.categories.map((category) => (
-                  <SelectItem
-                    key={category.id}
-                    value={category.id.toString()}
-                    className="dmsans-light"
-                  >
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.category && (
-              <p className="text-sm text-red-500">{errors.category.message}</p>
             )}
           </div>
 
@@ -182,76 +152,69 @@ export const TicketForm = ({
             <Label htmlFor="services">
               Service <span className="text-red-500">*</span>
             </Label>
-            <Select
+            <Combobox
+              options={dropdownOptions.services.map(s => ({
+                value: s.id.toString(),
+                label: s.name
+              }))}
+              value={watch("services")?.toString() || ""}
               onValueChange={(value) => setValue("services", Number(value))}
-              {...register("services", { required: "Service is required" })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select service" />
-              </SelectTrigger>
-              <SelectContent>
-                {dropdownOptions.services.map((service) => (
-                  <SelectItem
-                    key={service.id}
-                    value={service.id.toString()}
-                    className="dmsans-light"
-                  >
-                    {service.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Select service"
+              disabled={loading}
+            />
             {errors.services && (
               <p className="text-sm text-red-500">{errors.services.message}</p>
             )}
           </div>
 
+          {/* Category */}
+          <div className="space-y-2">
+            <Label htmlFor="category">
+              Category <span className="text-red-500">*</span>
+            </Label>
+            <Combobox
+              options={filteredCategories.map(c => ({
+                value: c.id.toString(),
+                label: c.name
+              }))}
+              value={watch("category")?.toString() || ""}
+              onValueChange={(value) => setValue("category", Number(value))}
+              placeholder={selectedService ? "Select category" : "Select service first"}
+              disabled={!selectedService || loading}
+            />
+            {errors.category && (
+              <p className="text-sm text-red-500">{errors.category.message}</p>
+            )}
+          </div>
+
           {/* Subcategory */}
           <div className="space-y-2">
-            <Label htmlFor="subcategory">Subcategory</Label>
-            <Select
+            <Label htmlFor="subcategory">Subcategory <span className="text-red-500">*</span></Label>
+            <Combobox
+              options={filteredSubcategories.map(sc => ({
+                value: sc.id.toString(),
+                label: sc.name
+              }))}
+              value={watch("subcategory")?.toString() || ""}
               onValueChange={(value) => setValue("subcategory", Number(value))}
-              {...register("subcategory")}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select subcategory (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredSubcategories.map((subcategory) => (
-                  <SelectItem
-                    key={subcategory.id}
-                    value={subcategory.id.toString()}
-                    className="dmsans-light"
-                  >
-                    {subcategory.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder={selectedCategory ? "Select subcategory" : "Select category first"}
+              disabled={!selectedCategory || loading}
+            />
           </div>
 
           {/* Network */}
           <div className="space-y-2">
             <Label htmlFor="network">Network (optional)</Label>
-            <Select
+            <Combobox
+              options={filteredNetworks.map(n => ({
+                value: n.id.toString(),
+                label: n.name
+              }))}
+              value={watch("network")?.toString() || ""}
               onValueChange={(value) => setValue("network", Number(value))}
-              {...register("network")}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select network (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {dropdownOptions.networks.map((network) => (
-                  <SelectItem
-                    key={network.id}
-                    value={network.id.toString()}
-                    className="dmsans-light"
-                  >
-                    {network.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder={selectedCategory ? "Select network" : "Select category first"}
+              disabled={!selectedCategory || loading}
+            />
           </div>
 
           {/* Priority */}
@@ -352,7 +315,7 @@ export const TicketForm = ({
               }}
               className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition hover:bg-blue-50"
             >
-              <CloudUpload className="text-muted-foreground"/>
+              <CloudUpload className="text-muted-foreground" />
               <div className="text-muted-foreground text-sm">
                 Click or drag and drop a file here
               </div>

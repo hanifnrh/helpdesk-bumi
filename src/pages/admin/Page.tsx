@@ -4,15 +4,18 @@ import { TicketFilters } from "@/components/TicketFilters";
 import { TicketForm } from "@/components/TicketForm";
 import { TicketStats } from "@/components/TicketStats";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserManagement } from "@/components/UserManagement";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminTickets } from "@/hooks/useAdminTickets";
 import { useProfile } from "@/hooks/useProfile";
+import { useUsers } from "@/hooks/useUsers";
 import { supabase } from "@/lib/utils/supabase";
 import { Ticket } from "@/types/ticket";
-import { LogOut, Plus, Ticket as TicketIcon, User } from "lucide-react";
+import { DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
+import { ChevronsUpDown, LogOut, Plus, Ticket as TicketIcon, User, UserRoundPen } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,11 +28,13 @@ const AdminDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tickets");
   const navigate = useNavigate();
+  const { updateUserProfile, loading: usersLoading } = useUsers();
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
     priority: "all",
     category: "all",
+    assignee: "all"
   });
   const {
     tickets,
@@ -55,6 +60,11 @@ const AdminDashboard = () => {
     fetchAllTickets({ ...filters, category });
   };
 
+  const handleAssigneeFilter = (assignee: string) => {
+    setFilters((prev) => ({ ...prev, assignee }));
+    fetchAllTickets({ ...filters, assignee });
+  };
+
   const handleSearchChange = (search: string) => {
     setFilters((prev) => ({ ...prev, search }));
     fetchAllTickets({ ...filters, search });
@@ -66,6 +76,7 @@ const AdminDashboard = () => {
       status: "all",
       priority: "all",
       category: "all",
+      assignee: "all"
     };
     setFilters(newFilters);
     fetchAllTickets(newFilters);
@@ -92,8 +103,6 @@ const AdminDashboard = () => {
         description: "Ticket created successfully",
         variant: "default",
       });
-      // navigate(`/tickets/${newTicket.id}`);
-      navigate("/user/dashboard");
     } catch (error) {
       toast({
         title: "Error",
@@ -118,7 +127,7 @@ const AdminDashboard = () => {
       ));
       setSelectedTicket(prev => prev && prev.id === ticketId ? { ...prev, status } : prev);
 
-      await supabase.from("ticket").update({ status }).eq("id", ticketId);
+      await supabase.from("ticket").update({ status,  updated_at: new Date().toISOString() }).eq("id", ticketId);
 
       toast({
         title: "Success",
@@ -141,7 +150,7 @@ const AdminDashboard = () => {
       ));
       setSelectedTicket(prev => prev && prev.id === ticketId ? { ...prev, assignee } : prev);
 
-      await supabase.from("ticket").update({ assignee }).eq("id", ticketId);
+      await supabase.from("ticket").update({ assignee,  updated_at: new Date().toISOString() }).eq("id", ticketId);
 
       toast({
         title: "Success",
@@ -184,24 +193,46 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <p className="capitalize dmsans-regular bg-blue-100 text-blue-500 rounded-md px-3 py-1 text-sm">
-              {profile?.role}
+          <div className="flex flex-col items-end gap-2">
+            <p className="text-lg text-gray-800 dmsans-semibold">
+              Welcome back,
             </p>
-            <div className="text-right">
-              <p className="text-sm text-gray-600 dmsans-regular">
-                Welcome back,
-              </p>
-              <p className="dmsans-regular">{profile?.name}</p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="border-blue-200 text-blue-500 hover:bg-blue-50 hover:text-blue-700"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="profile" className="bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 hover:text-zinc-800 flex items-center rounded-xl gap-2 px-2">
+                  <div className="flex items-center gap-4 cursor-pointer">
+                    <p className="capitalize dmsans-regular bg-violet-100 text-violet-500 rounded-md py-1 px-3 text-sm">
+                      {profile?.role}
+                    </p>
+                    <div className="text-right">
+                      <p className="dmsans-regular text-lg flex items-center gap-2">{profile?.name} <ChevronsUpDown /></p>
+                    </div>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start">
+                <DropdownMenuLabel className="dmsans-regular text-base">Profile</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup className="dmsans-regular text-base flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/editprofile', { state: { profile } })}
+                    className="w-full border-blue-200 text-blue-500 hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    <UserRoundPen className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="w-full border-red-200 text-red-500 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -243,6 +274,7 @@ const AdminDashboard = () => {
               onStatusFilter={handleStatusFilter}
               onPriorityFilter={handlePriorityFilter}
               onCategoryFilter={handleCategoryFilter}
+              onAssigneeFilter={handleAssigneeFilter}
               activeFilters={filters}
               onClearFilters={clearFilters}
               dropdownOptions={dropdownOptions}

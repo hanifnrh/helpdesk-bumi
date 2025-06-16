@@ -229,6 +229,16 @@ export const AdminTicketModal = ({
                                     : "N/A"}
                             </p>
                         </div>
+                        <div className="space-y-1">
+                            <span className="text-sm font-medium ">
+                                Updated:
+                            </span>
+                            <p className="text-sm text-gray-900">
+                                {ticket.updated_at
+                                    ? format(new Date(ticket.updated_at), "MMM dd, yyyy HH:mm")
+                                    : "N/A"}
+                            </p>
+                        </div>
                     </div>
 
                     {/* Description */}

@@ -8,6 +8,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import './App.css';
 import { PrivateRoute } from "./components/PrivateRoute";
 import './index.css';
+import { EditProfilePage } from "./pages/EditProfile";
 import { Index } from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/Page";
@@ -30,6 +31,7 @@ const App = () => (
             <Route element={<PrivateRoute />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/editprofile" element={<EditProfilePage />} />
             </Route>
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />

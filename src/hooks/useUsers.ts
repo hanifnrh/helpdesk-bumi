@@ -100,5 +100,30 @@ export const useUsers = () => {
     }
   };
 
-  return { users, loading, addUser, removeUser, resetUserPassword, fetchUsers };
+  const updateUserProfile = async (updates: { name?: string; phone?: string; department?: string }) => {
+    setLoading(true);
+    try {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)  // Use the auth user's ID
+        .select();
+
+      if (error) throw error;
+
+      await fetchUsers(); // Refresh the user list
+      return data[0];
+    } catch (error: any) {
+      console.error('Error updating profile:', error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return { users, loading, addUser, removeUser, resetUserPassword, fetchUsers, updateUserProfile };
 };

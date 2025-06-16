@@ -21,10 +21,10 @@ export const useUserTickets = (userId: string) => {
       setLoading(true);
       const queries = [
         supabase.from('branches').select('id, branch_name').order('branch_name'),
-        supabase.from('categories').select('id, category_name').order('category_name'),
+        supabase.from('categories').select('id, category_name, service_id').order('category_name'),
         supabase.from('services').select('id, service_name').order('service_name'),
         supabase.from('subcategories').select('id, subcategory_name, category_id').order('subcategory_name'),
-        supabase.from('networks').select('id, network_name').order('network_name'),
+        supabase.from('networks').select('id, network_name, category_id').order('network_name'),
         supabase.from('priorities').select('id, priority_name, level').order('level'),
         supabase.from('statuses').select('id, status_name').order('status_name'),
         supabase.from('assignee').select('id, assignee_name').order('assignee_name')
@@ -33,14 +33,22 @@ export const useUserTickets = (userId: string) => {
       const results = await Promise.all(queries);
       setDropdownOptions({
         branches: results[0].data?.map(b => ({ id: b.id, name: b.branch_name })) || [],
-        categories: results[1].data?.map(c => ({ id: c.id, name: c.category_name })) || [],
+        categories: results[1].data?.map(c => ({
+          id: c.id,
+          name: c.category_name,
+          service_id: c.service_id
+        })) || [],
         services: results[2].data?.map(s => ({ id: s.id, name: s.service_name })) || [],
         subcategories: results[3].data?.map(sc => ({
           id: sc.id,
           name: sc.subcategory_name,
           category_id: sc.category_id
         })) || [],
-        networks: results[4].data?.map(n => ({ id: n.id, name: n.network_name })) || [],
+        networks: results[4].data?.map(n => ({
+          id: n.id,
+          name: n.network_name,
+          category_id: n.category_id
+        })) || [],
         priorities: results[5].data?.map(p => ({
           id: p.id,
           name: p.priority_name,
@@ -60,7 +68,8 @@ export const useUserTickets = (userId: string) => {
     search: "",
     status: "all",
     priority: "all",
-    category: "all"
+    category: "all",
+    assignee: "all"
   }) => {
     setLoading(true);
     try {
@@ -90,6 +99,9 @@ export const useUserTickets = (userId: string) => {
       if (filters.category !== "all") {
         query = query.eq('category', filters.category);
       }
+      if (filters.assignee !== "all") {
+        query = query.eq('assignee', filters.assignee);
+      }
       if (filters.search) {
         query = query.or(
           `subject.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
@@ -114,7 +126,8 @@ export const useUserTickets = (userId: string) => {
         profile: userId,
         status: ticketData.status || 1,
         priority: ticketData.priority || 2,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       const { data, error } = await supabase
@@ -134,10 +147,6 @@ export const useUserTickets = (userId: string) => {
     }
   };
 
-  const updateTicketStatus = async (ticketId: string, status: Ticket["status"]) => {
-    await supabase.from("ticket").update({ status }).eq("id", ticketId);
-    await fetchTickets();
-  };
 
   useEffect(() => {
     fetchDropdownOptions();
@@ -149,7 +158,6 @@ export const useUserTickets = (userId: string) => {
     loading,
     createTicket,
     dropdownOptions,
-    updateTicketStatus,
     fetchTickets
   };
 };

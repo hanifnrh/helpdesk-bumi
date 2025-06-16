@@ -297,6 +297,14 @@ export const TicketModal = ({
                     {format(new Date(ticket.created_at), "MMM dd, yyyy HH:mm")}
                   </span>
                 </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-600">Updated:</span>
+                  <span className="font-medium">
+                    {format(new Date(ticket.updated_at), "MMM dd, yyyy HH:mm")}
+                  </span>
+                </div>
               </div>
             </div>
 
