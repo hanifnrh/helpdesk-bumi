@@ -9,16 +9,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
 import { Key, Mail, Phone, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Combobox } from './ui/combobox';
 
 export const UserManagement = () => {
   const { users, loading, addUser, removeUser, resetUserPassword, fetchUsers } = useUsers();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { updateUserProfile, dropdownOptions, loading: dropdownsLoading } = useUsers();
   const [formData, setFormData] = useState({
     email: '',
     name: '',
     phone: '+62',
     role: 'user',
-    department: ''
+    department: null as number | null
   });
   const { toast } = useToast();
 
@@ -55,7 +57,7 @@ export const UserManagement = () => {
 
     try {
       await addUser(formData);
-      setFormData({ email: '', name: '', phone: '+62', role: 'user', department: '' });
+      setFormData({ email: '', name: '', phone: '+62', role: 'user', department: null });
       setIsModalOpen(false);
       toast({
         title: "User Created",
@@ -87,7 +89,7 @@ export const UserManagement = () => {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="dmsans-regular w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -203,11 +205,23 @@ export const UserManagement = () => {
 
             <div className="space-y-2">
               <Label htmlFor="department">Department</Label>
-              <Input
+              {/* <Input
                 id="department"
                 value={formData.department}
                 onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
                 placeholder="Enter department"
+              /> */}
+              <Combobox
+                options={dropdownOptions.departments.map(d => ({
+                  value: d.id.toString(), // Convert number to string for Combobox
+                  label: d.name
+                }))}
+                value={formData.department?.toString() || ''} // Convert number to string
+                onValueChange={(value) => setFormData(prev => ({
+                  ...prev,
+                  department: value ? parseInt(value) : null // Convert back to number
+                }))}
+                placeholder="Select department"
               />
             </div>
 

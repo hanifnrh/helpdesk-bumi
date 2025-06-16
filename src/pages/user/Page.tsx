@@ -221,93 +221,93 @@ const UserDashboard = () => {
             </DropdownMenu>
           </div>
         </div>
+        {/* Stats */}
+        <TicketStats tickets={tickets} />
+
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex items-center justify-between">
+            <TabsList className="grid w-auto grid-cols-2 bg-white border border-blue-200">
+              <TabsTrigger
+                value="tickets"
+                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              >
+                <TicketIcon className="h-4 w-4" />
+                My Tickets ({tickets.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="create"
+                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Create Ticket
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="tickets" className="space-y-6">
+            {/* Filters */}
+            <TicketFilters
+              onSearchChange={handleSearchChange}
+              onStatusFilter={handleStatusFilter}
+              onPriorityFilter={handlePriorityFilter}
+              onCategoryFilter={handleCategoryFilter}
+              onAssigneeFilter={handleAssigneeFilter}
+              activeFilters={filters}
+              onClearFilters={clearFilters}
+              dropdownOptions={dropdownOptions}
+            />
+
+            {/* Tickets Grid */}
+            {tickets.length === 0 ? (
+              <div className="text-center py-12">
+                <TicketIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No tickets found
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Get started by creating your first ticket.
+                </p>
+                <Button
+                  onClick={() => setActiveTab("create")}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Ticket
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {tickets.map((ticket) => (
+                  <TicketCard
+                    key={ticket.id}
+                    ticket={ticket}
+                    onClick={handleTicketClick}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="create">
+            <TicketForm
+              onSubmit={handleCreateTicket}
+              loading={loading}
+              dropdownOptions={dropdownOptions}
+            />
+          </TabsContent>
+        </Tabs>
+
+        {/* Ticket Modal */}
+        <TicketModal
+          ticket={selectedTicket}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onStatusChange={handleStatusChange}
+          onAssigneeChange={handleAssigneeChange}
+        />
       </div>
 
-      {/* Stats */}
-      <TicketStats tickets={tickets} />
-
-      {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between">
-          <TabsList className="grid w-auto grid-cols-2 bg-white border border-blue-200">
-            <TabsTrigger
-              value="tickets"
-              className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-            >
-              <TicketIcon className="h-4 w-4" />
-              My Tickets ({tickets.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="create"
-              className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-            >
-              <Plus className="h-4 w-4" />
-              Create Ticket
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="tickets" className="space-y-6">
-          {/* Filters */}
-          <TicketFilters
-            onSearchChange={handleSearchChange}
-            onStatusFilter={handleStatusFilter}
-            onPriorityFilter={handlePriorityFilter}
-            onCategoryFilter={handleCategoryFilter}
-            onAssigneeFilter={handleAssigneeFilter}
-            activeFilters={filters}
-            onClearFilters={clearFilters}
-            dropdownOptions={dropdownOptions}
-          />
-
-          {/* Tickets Grid */}
-          {tickets.length === 0 ? (
-            <div className="text-center py-12">
-              <TicketIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No tickets found
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Get started by creating your first ticket.
-              </p>
-              <Button
-                onClick={() => setActiveTab("create")}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Ticket
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tickets.map((ticket) => (
-                <TicketCard
-                  key={ticket.id}
-                  ticket={ticket}
-                  onClick={handleTicketClick}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="create">
-          <TicketForm
-            onSubmit={handleCreateTicket}
-            loading={loading}
-            dropdownOptions={dropdownOptions}
-          />
-        </TabsContent>
-      </Tabs>
-
-      {/* Ticket Modal */}
-      <TicketModal
-        ticket={selectedTicket}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onStatusChange={handleStatusChange}
-        onAssigneeChange={handleAssigneeChange}
-      />
     </div>
   );
 };
