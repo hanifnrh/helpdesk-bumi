@@ -10,6 +10,7 @@ import { PrivateRoute } from "./components/PrivateRoute";
 import './index.css';
 import { EditProfilePage } from "./pages/EditProfile";
 import { Index } from "./pages/Index";
+import { Login } from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/Page";
 import { ResetPassword } from "./pages/auth/ResetPassword";
@@ -26,6 +27,7 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
 
             {/* Protected Routes */}
             <Route element={<PrivateRoute />}>

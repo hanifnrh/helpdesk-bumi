@@ -1,109 +1,114 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { useProfile } from "@/hooks/useProfile";
-import { KeyRound, Loader2, LogIn } from "lucide-react";
-import type React from "react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
-export const Index = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { login, user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const { profile, loading: profileLoading } = useProfile();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const success = await login(email, password);
-      if (!success) {
-        toast({
-          title: "Login Failed",
-          description: "Invalid email or password.",
-          variant: "destructive",
-        });
-      }
-      // Navigation is now handled in AuthContext
-    } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        title: "Error",
-        description: "An error occurred during login.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col min-h-screen dmsans-regular bg-gradient-to-br from-blue-50 via-white to-blue-200 items-center justify-center p-6 gap-6">
-      <img src="/assets/logo-bumi.png" alt="Logo Bumi Auto" className="w-1/3 h-auto" />
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <KeyRound className="h-8 w-8 text-blue-600" />
-            <CardTitle className="text-2xl text-blue-600">Helpdesk Login</CardTitle>
-          </div>
-          <p className="text-gray-600">
-            Sign in to access the ticketing system
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                disabled={loading}
-              />
+export function Index() {
+    return (
+        <div className="dmsans-regular relative mx-auto my-10 flex max-w-7xl flex-col items-center justify-center">
+            <Navbar />
+            <div className="absolute inset-y-0 left-0 h-full w-px bg-neutral-200/80 dark:bg-neutral-800/80">
+                <div className="absolute top-0 h-40 w-px bg-gradient-to-b from-transparent via-blue-500 to-transparent" />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                disabled={loading}
-              />
+            <div className="absolute inset-y-0 right-0 h-full w-px bg-neutral-200/80 dark:bg-neutral-800/80">
+                <div className="absolute h-40 w-px bg-gradient-to-b from-transparent via-blue-500 to-transparent" />
             </div>
+            <div className="absolute inset-x-0 bottom-0 h-px w-full bg-neutral-200/80 dark:bg-neutral-800/80">
+                <div className="absolute mx-auto h-px w-40 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+            </div>
+            <div className="px-4 py-10 md:py-20">
+                <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-indigo-700 md:text-4xl lg:text-7xl dark:text-slate-300">
+                    {"Bumi Auto Helpdesk System"
+                        .split(" ")
+                        .map((word, index) => (
+                            <motion.span
+                                key={index}
+                                initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
+                                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                                transition={{
+                                    duration: 0.3,
+                                    delay: index * 0.1,
+                                    ease: "easeInOut",
+                                }}
+                                className="mr-2 inline-block"
+                            >
+                                {word}
+                            </motion.span>
+                        ))}
+                </h1>
+                <motion.p
+                    initial={{
+                        opacity: 0,
+                    }}
+                    animate={{
+                        opacity: 1,
+                    }}
+                    transition={{
+                        duration: 0.3,
+                        delay: 0.8,
+                    }}
+                    className="relative z-10 mx-auto max-w-2xl py-4 text-center text-xl font-normal text-zinc-800 dark:text-neutral-400"
+                >
+                    Easily manage customer support tickets, track issues, and provide timely assistance to your users. Our platform is designed to streamline your support process and enhance user satisfaction.
+                </motion.p>
+                <motion.div
+                    initial={{
+                        opacity: 0,
+                    }}
+                    animate={{
+                        opacity: 1,
+                    }}
+                    transition={{
+                        duration: 0.3,
+                        delay: 1,
+                    }}
+                    className="relative z-10 mt-8 flex flex-wrap items-center justify-center gap-4"
+                >
+                    <button className="w-60 transform rounded-lg bg-zinc-900 px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                        Explore Now
+                    </button>
+                    <button className="w-60 transform rounded-lg border border-gray-300 bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-100 dark:border-gray-700 dark:bg-black dark:text-white dark:hover:bg-gray-900">
+                        Contact Support
+                    </button>
+                </motion.div>
+                <motion.div
+                    initial={{
+                        opacity: 0,
+                        y: 10,
+                    }}
+                    animate={{
+                        opacity: 1,
+                        y: 0,
+                    }}
+                    transition={{
+                        duration: 0.3,
+                        delay: 1.2,
+                    }}
+                    className="relative z-10 mt-20 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+                >
+                    <div className="w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700">
+                        <img
+                            src="https://assets.aceternity.com/pro/aceternity-landing.webp"
+                            alt="Landing page preview"
+                            className="aspect-[16/9] h-auto w-full object-cover"
+                            height={1000}
+                            width={1000}
+                        />
+                    </div>
+                </motion.div>
+            </div>
+        </div>
+    );
+}
 
-            <Button type="submit" className="w-full bg-indigo-600 text-white hover:bg-indigo-700 transition-all" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+const Navbar = () => {
+    return (
+        <nav className="dmsans-regular flex w-full items-center justify-between border-t border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
+            <div className="flex items-center gap-2">
+                <img src="/assets/logo-bumi.png" alt="" className="w-60" />
+            </div>
+            <a href="/login" className="w-24 transform rounded-lg text-center bg-indigo-600 px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-indigo-500 md:w-32 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                Login
+            </a>
+        </nav>
+    );
 };
