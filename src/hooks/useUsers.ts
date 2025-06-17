@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/utils/supabase";
 import { useEffect, useState } from "react";
+import { toast } from "./use-toast";
 
 export const useUsers = () => {
   const [loading, setLoading] = useState(false);
@@ -27,8 +28,10 @@ export const useUsers = () => {
   const addUser = async (userData) => {
     setLoading(true);
     try {
+      // Generate a random password (won't be used directly)
       const randomPassword = Math.random().toString(36).slice(-8);
 
+      // 1. Sign up the user (without email confirmation)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: randomPassword,
@@ -40,17 +43,40 @@ export const useUsers = () => {
             role: userData.role || 'user',
             department: userData.department || null,
           },
-          emailRedirectTo: `${window.location.origin}/auth/reset-password`
+          // Disable email confirmation
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
       if (authError) throw authError;
 
+      // 2. Manually create the profile record if it doesn't exist
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            email: userData.email,
+            name: userData.name,
+            phone: userData.phone,
+            role: userData.role || 'user',
+            department: userData.department || null,
+          });
+
+        if (profileError) throw profileError;
+      }
+
+      // 3. Send password reset email
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
+        redirectTo: `${window.location.origin}/auth/handle-reset`
       });
 
       if (resetError) throw resetError;
+
+      toast({
+        title: "User Created",
+        description: `${userData.name} has been added successfully. A password setup email has been sent to them.`,
+      });
 
       await fetchUsers();
     } catch (error) {

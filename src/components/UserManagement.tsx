@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
+import { supabase } from '@/lib/utils/supabase';
 import { Key, Mail, Phone, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Combobox } from './ui/combobox';
@@ -30,12 +31,18 @@ export const UserManagement = () => {
 
   const handleResetPassword = async (userEmail: string, userName: string) => {
     try {
-      await resetUserPassword(userEmail);
+      // Updated to use the new auth method (v2)
+      const { data, error } = await supabase.auth.resetPasswordForEmail(userEmail, {
+        redirectTo: `${window.location.origin}/auth/handle-reset`
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Password Reset Sent",
         description: `A password reset link has been sent to ${userName}'s email (${userEmail}).`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to send password reset",
@@ -169,7 +176,7 @@ export const UserManagement = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
+              <Label htmlFor="name">Full Name <span className='text-red-500'>*</span></Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -180,7 +187,7 @@ export const UserManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Email <span className='text-red-500'>*</span></Label>
               <Input
                 id="email"
                 type="email"
@@ -192,7 +199,7 @@ export const UserManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number *</Label>
+              <Label htmlFor="phone">Phone Number <span className='text-red-500'>*</span></Label>
               <Input
                 id="phone"
                 type="tel"

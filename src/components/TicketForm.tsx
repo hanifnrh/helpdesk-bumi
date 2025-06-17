@@ -285,7 +285,7 @@ export const TicketForm = ({
 
         {/* Attachment */}
         <div className="space-y-2">
-          <Label htmlFor="attachment">Attachment (optional)</Label>
+          <Label htmlFor="attachment">Attachment (optional, max. 10MB)</Label>
 
           <Input
             id="attachment"

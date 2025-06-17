@@ -6,9 +6,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import './App.css';
+import { HandleReset } from "./components/HandleReset";
 import { PrivateRoute } from "./components/PrivateRoute";
 import './index.css';
 import { EditProfilePage } from "./pages/EditProfile";
+import { EnterToken } from "./pages/EnterToken";
 import FAQ from "./pages/FAQ";
 import { Index } from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -27,7 +29,7 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
-              <Route path="/FAQ" element={<FAQ />} />
+            <Route path="/FAQ" element={<FAQ />} />
 
             {/* Protected Routes */}
             <Route element={<PrivateRoute />}>
@@ -35,7 +37,10 @@ const App = () => (
               <Route path="/user/dashboard" element={<UserDashboard />} />
               <Route path="/editprofile" element={<EditProfilePage />} />
             </Route>
+
             <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/enter-token" element={<EnterToken />} />
+            <Route path="/auth/handle-reset" element={<HandleReset />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

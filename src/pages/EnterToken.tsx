@@ -6,9 +6,9 @@ import { supabase } from '@/lib/utils/supabase';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export const ResetPassword = () => {
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+export const EnterToken = () => {
+    const [email, setEmail] = useState('');
+    const [token, setToken] = useState('');
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     const navigate = useNavigate();
@@ -17,32 +17,24 @@ export const ResetPassword = () => {
         e.preventDefault();
         setLoading(true);
 
-        if (password !== confirmPassword) {
-            toast({
-                title: "Error",
-                description: "Passwords don't match",
-                variant: "destructive",
-            });
-            setLoading(false);
-            return;
-        }
-
         try {
-            const { error } = await supabase.auth.updateUser({
-                password,
+            const { error } = await supabase.auth.verifyOtp({
+                email,
+                token,
+                type: 'recovery'
             });
 
             if (error) throw error;
 
             toast({
-                title: "Success",
-                description: "Your password has been updated successfully",
+                title: "Token Verified",
+                description: "You can now set your new password",
             });
-            navigate('/');
+            navigate('/auth/reset-password');
         } catch (error: any) {
             toast({
                 title: "Error",
-                description: error.message || "Failed to update password",
+                description: error.message || "Invalid token. Please try again.",
                 variant: "destructive",
             });
         } finally {
@@ -53,40 +45,41 @@ export const ResetPassword = () => {
     return (
         <div className="dmsans-regular flex items-center justify-center min-h-screen">
             <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-lg">
-                <h1 className="text-2xl font-bold text-center">Set New Password</h1>
+                <h1 className="text-2xl font-bold text-center">Enter Reset Token</h1>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="password">New Password</Label>
+                        <Label htmlFor="email">Email Address</Label>
                         <Input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
-                            minLength={6}
-                            placeholder="Enter your new password (min 6 characters)"
+                            placeholder="Enter your email address"
                             className="w-full p-2 border rounded-md"
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Label htmlFor="token">Reset Token</Label>
                         <Input
-                            id="confirmPassword"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            id="token"
+                            type="text"
+                            value={token}
+                            onChange={(e) => setToken(e.target.value)}
                             required
-                            minLength={6}
-                            placeholder="Confirm your new password"
+                            placeholder="Enter the 6-digit token from your email"
                             className="w-full p-2 border rounded-md"
                         />
+                        <p className="text-sm text-gray-500">
+                            Check your email for the password reset token
+                        </p>
                     </div>
                     <Button
                         type="submit"
                         className="w-full bg-indigo-600 font-semibold"
                         disabled={loading}
                     >
-                        {loading ? "Updating..." : "Update Password"}
+                        {loading ? "Verifying..." : "Verify Token"}
                     </Button>
                 </form>
             </div>
