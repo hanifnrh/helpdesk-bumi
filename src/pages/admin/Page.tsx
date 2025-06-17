@@ -197,15 +197,17 @@ const AdminDashboard = () => {
         <div className="flex items-center justify-between py-4">
           <div className="text-left space-y-4 flex-1">
             <div className="flex flex-col items-start justify-center gap-3">
-              <img
-                src="/assets/logo-bumi.png"
-                alt="Bumi Logo"
-                width={50}
-                className="w-44 h-auto"
-              />
-              <h1 className="text-4xl dmsans-semibold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
-                Helpdesk System
-              </h1>
+              <a href="/">
+                <img
+                  src="/assets/logo-bumi.png"
+                  alt="Bumi Logo"
+                  width={50}
+                  className="w-44 h-auto"
+                />
+                <h1 className="text-4xl dmsans-semibold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
+                  Helpdesk System
+                </h1>
+              </a>
             </div>
           </div>
 

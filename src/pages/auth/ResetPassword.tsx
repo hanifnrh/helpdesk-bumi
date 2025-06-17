@@ -3,16 +3,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/utils/supabase';
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export const ResetPassword = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const location = useLocation();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { toast } = useToast();
+
+    useEffect(() => {
+        const redirectUrl = searchParams.get('redirectUrl');
+        if (redirectUrl) {
+            // Immediately redirect to the Supabase URL
+            window.location.href = redirectUrl;
+        }
+    }, [searchParams]);
 
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,47 +37,40 @@ export const ResetPassword = () => {
         }
 
         try {
-            // Extract token from URL hash
+            // Check if we have a token in the URL (direct access case)
             const hash = window.location.hash.substring(1);
             const params = new URLSearchParams(hash);
             const accessToken = params.get('access_token');
-            const refreshToken = params.get('refresh_token');
 
-            if (!accessToken) {
-                throw new Error("Invalid reset link");
+            if (accessToken) {
+                const { error } = await supabase.auth.updateUser({
+                    password,
+                });
+
+                if (error) throw error;
+
+                toast({
+                    title: "Success",
+                    description: "Your password has been updated successfully",
+                });
+                navigate('/');
             }
-
-            // Set the session (this will authenticate the user temporarily)
-            const { error: sessionError } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken || '',
-            });
-
-            if (sessionError) throw sessionError;
-
-            // Now update the password
-            const { error } = await supabase.auth.updateUser({
-                password,
-            });
-
-            if (error) throw error;
-
-            toast({
-                title: "Success",
-                description: "Your password has been updated successfully",
-            });
-
-            navigate('/');
         } catch (error: any) {
             toast({
                 title: "Error",
-                description: error.message,
+                description: error.message || "Failed to update password",
                 variant: "destructive",
             });
         } finally {
             setLoading(false);
         }
     };
+
+    // Only show the form if there's no redirectUrl
+    const redirectUrl = searchParams.get('redirectUrl');
+    if (redirectUrl) {
+        return <div className="flex items-center justify-center min-h-screen">Redirecting...</div>;
+    }
 
     return (
         <div className="flex dmsans-regular items-center justify-center min-h-screen">
