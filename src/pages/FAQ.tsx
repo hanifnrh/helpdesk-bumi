@@ -113,8 +113,8 @@ const FAQ = () => {
                     <TabsContent value="create">
                         <div className="flex flex-col justify-center items-start bg-white rounded-xl border border-blue-200 p-6 w-full">
                             <h2 className="text-2xl dmsans-semibold text-blue-800 mb-6">Create New Ticket</h2>
-                            <a href="/login">
-                                <Button className="flex items-center gap-2 bg-blue-600">
+                            <a href="/">
+                                <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500">
                                     Sign in to create ticket <LogIn />
                                 </Button>
                             </a>
