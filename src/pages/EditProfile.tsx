@@ -87,56 +87,58 @@ export const EditProfilePage = () => {
     };
 
     return (
-        <div className="mt-10 container mx-auto p-6 max-w-2xl dmsans-regular border border-zinc-200 rounded-xl my-auto">
-            <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                        id="name"
-                        value={profile.name}
-                        onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                        required
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                        id="phone"
-                        value={profile.phone}
-                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="department">Department</Label>
-                    <Combobox
-                        options={dropdownOptions.departments.map(d => ({
-                            value: d.id.toString(),
-                            label: d.name
-                        }))}
-                        value={profile.department?.toString() || ""}
-                        onValueChange={(value) => setProfile({ ...profile, department: value })}
-                        placeholder="Select department"
-                        disabled={dropdownsLoading || loading}
-                    />
-                </div>
-                <div className="flex gap-2 justify-end pt-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate(-1)}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        className='bg-emerald-100 text-emerald-500 hover:bg-emerald-200 hover:text-emerald-600'
-                        type="submit"
-                        disabled={loading}
-                    >
-                        {loading ? "Saving..." : "Save Changes"}
-                    </Button>
-                </div>
-            </form>
+        <div className='p-4 my-10'>
+            <div className="container mx-auto p-6 max-w-2xl dmsans-regular border border-zinc-200 rounded-xl my-auto">
+                <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                            id="name"
+                            value={profile.name}
+                            onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                            required
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                            id="phone"
+                            value={profile.phone}
+                            onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="department">Department</Label>
+                        <Combobox
+                            options={dropdownOptions.departments.map(d => ({
+                                value: d.id.toString(),
+                                label: d.name
+                            }))}
+                            value={profile.department?.toString() || ""}
+                            onValueChange={(value) => setProfile({ ...profile, department: value })}
+                            placeholder="Select department"
+                            disabled={dropdownsLoading || loading}
+                        />
+                    </div>
+                    <div className="flex gap-2 justify-end pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => navigate(-1)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            className='bg-emerald-100 text-emerald-500 hover:bg-emerald-200 hover:text-emerald-600'
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

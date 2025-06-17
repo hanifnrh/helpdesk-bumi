@@ -194,7 +194,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen dmsans-regular bg-gradient-to-br from-blue-50 via-white to-blue-100">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-0 sm:py-4">
           <div className="text-left space-y-4 flex-1">
             <div className="flex flex-col items-start justify-center gap-3">
               <a href="/">
@@ -204,7 +204,7 @@ const AdminDashboard = () => {
                   width={50}
                   className="w-44 h-auto"
                 />
-                <h1 className="text-4xl dmsans-semibold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-4xl dmsans-semibold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
                   Helpdesk System
                 </h1>
               </a>
@@ -212,18 +212,18 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <p className="text-lg text-gray-800 dmsans-semibold">
+            <p className="text-sm sm:text-lg text-gray-800 dmsans-semibold">
               Welcome back,
             </p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="profile" className="bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 hover:text-zinc-800 flex items-center rounded-xl gap-2 px-2">
                   <div className="flex items-center gap-4 cursor-pointer">
-                    <p className="capitalize dmsans-regular bg-violet-100 text-violet-500 rounded-md py-1 px-3 text-sm">
+                    <p className="capitalize dmsans-regular bg-violet-100 text-violet-500 rounded-md py-1 px-3 text-xs sm:text-sm">
                       {profile?.role}
                     </p>
                     <div className="text-right">
-                      <p className="dmsans-regular text-lg flex items-center gap-2">{profile?.name} <ChevronsUpDown /></p>
+                      <p className="dmsans-regular text-sm sm:text-lg flex items-center gap-2">{profile?.name} <ChevronsUpDown /></p>
                     </div>
                   </div>
                 </Button>
@@ -263,24 +263,24 @@ const AdminDashboard = () => {
             <TabsList className="grid w-auto grid-cols-3 bg-white border border-blue-200">
               <TabsTrigger
                 value="tickets"
-                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs"
               >
                 <TicketIcon className="h-4 w-4" />
                 All Tickets ({tickets.length})
               </TabsTrigger>
               <TabsTrigger
                 value="create"
-                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs"
               >
                 <Plus className="h-4 w-4" />
                 Create Ticket
               </TabsTrigger>
               <TabsTrigger
                 value="users"
-                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs"
               >
                 <User className="h-4 w-4" />
-                User Management
+                Manage User
               </TabsTrigger>
             </TabsList>
           </div>

@@ -38,10 +38,10 @@ export const TicketStats = ({ tickets }: TicketStatsProps) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <Card className="flex items-center justify-between gap-2 p-4">
         <div className="flex flex-col">
-          <div className="flex flex-row items-center space-y-0 pb-2">
+          <div className="text-xs sm:text-base flex flex-row items-center space-y-0 pb-2 gap-2">
             Total Tickets
           </div>
 
@@ -52,7 +52,7 @@ export const TicketStats = ({ tickets }: TicketStatsProps) => {
 
       <Card className="flex items-center justify-between gap-2 p-4">
         <div className="flex flex-col">
-          <div className="flex flex-row items-center space-y-0 pb-2">Open</div>
+          <div className="text-xs sm:text-base flex flex-row items-center space-y-0 pb-2 gap-2">Open </div>
 
           <div className="text-2xl text-left font-bold text-blue-500">
             {stats.open}
@@ -63,7 +63,7 @@ export const TicketStats = ({ tickets }: TicketStatsProps) => {
 
       <Card className="flex items-center justify-between gap-2 p-4">
         <div className="flex flex-col">
-          <div className="flex flex-row items-center space-y-0 pb-2">
+          <div className="text-xs sm:text-base flex flex-row items-center space-y-0 pb-2 gap-2">
             In Progress
           </div>
 
@@ -76,7 +76,7 @@ export const TicketStats = ({ tickets }: TicketStatsProps) => {
 
       <Card className="flex items-center justify-between gap-2 p-4">
         <div className="flex flex-col">
-          <div className="flex flex-row items-center space-y-0 pb-2">
+          <div className="text-xs sm:text-base flex flex-row items-center space-y-0 pb-2">
             Resolved
           </div>
 
@@ -89,7 +89,7 @@ export const TicketStats = ({ tickets }: TicketStatsProps) => {
 
       <Card className="flex items-center justify-between gap-2 p-4">
         <div className="flex flex-col">
-          <div className="flex flex-row items-center space-y-0 pb-2">
+          <div className="text-xs sm:text-base flex flex-row items-center space-y-0 pb-2">
             Critical
           </div>
 
