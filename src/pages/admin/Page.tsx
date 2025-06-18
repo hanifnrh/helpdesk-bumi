@@ -44,6 +44,7 @@ const AdminDashboard = () => {
     dropdownOptions,
     fetchTickets: fetchAllTickets,
   } = useAdminTickets();
+    const userRole = profile?.role || "admin";
 
   const handleStatusFilter = (status: string) => {
     setFilters((prev) => ({ ...prev, status }));
@@ -337,6 +338,7 @@ const AdminDashboard = () => {
               onSubmit={handleCreateTicket}
               loading={loading}
               dropdownOptions={dropdownOptions}
+              userRole={userRole}
             />
           </TabsContent>
 

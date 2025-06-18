@@ -40,6 +40,8 @@ const UserDashboard = () => {
     fetchTickets,
   } = useUserTickets(user?.id);
 
+  const userRole = profile?.role || "user";
+
   const handleStatusFilter = (status: string) => {
     setFilters((prev) => ({ ...prev, status }));
     fetchTickets({ ...filters, status });
@@ -296,6 +298,7 @@ const UserDashboard = () => {
               onSubmit={handleCreateTicket}
               loading={loading}
               dropdownOptions={dropdownOptions}
+              userRole={userRole}
             />
           </TabsContent>
         </Tabs>

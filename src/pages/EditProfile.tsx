@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
 import { supabase } from '@/lib/utils/supabase';
+import { Key } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -34,7 +35,7 @@ export const EditProfilePage = () => {
                     // Fetch profile data
                     const { data: profileData, error: profileError } = await supabase
                         .from('profiles')
-                        .select('name, phone, department')
+                        .select('name, email, phone, department')
                         .eq('id', user.id)
                         .single();
 
@@ -86,11 +87,41 @@ export const EditProfilePage = () => {
         }
     };
 
+    const handleResetPassword = async (userEmail: string, userName: string) => {
+        try {
+            // Updated to use the new auth method (v2)
+            const { data, error } = await supabase.auth.resetPasswordForEmail(userEmail, {
+                redirectTo: `${window.location.origin}/auth/handle-reset`
+            });
+
+            if (error) throw error;
+
+            toast({
+                title: "Password Reset Sent",
+                description: `A password reset link has been sent to ${userName}'s email (${userEmail}).`,
+            });
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to send password reset",
+                variant: "destructive",
+            });
+        }
+    };
+
     return (
         <div className='p-4 my-10'>
             <div className="container mx-auto p-6 max-w-2xl dmsans-regular border border-zinc-200 rounded-xl my-auto">
                 <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <Label htmlFor="name">Email <span className='text-red-500'>(cannot be changed)</span></Label>
+                        <Input
+                            id="name"
+                            value={profile.email}
+                            disabled
+                        />
+                    </div>
                     <div>
                         <Label htmlFor="name">Full Name</Label>
                         <Input
@@ -120,6 +151,19 @@ export const EditProfilePage = () => {
                             placeholder="Select department"
                             disabled={dropdownsLoading || loading}
                         />
+                    </div>
+                    <div>
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-auto w-full p-2"
+                            onClick={() => handleResetPassword(profile.email, profile.name)}
+                            disabled={loading}
+                        >
+                            Reset Password
+                            <Key className="h-3 w-3" />
+                        </Button>
                     </div>
                     <div className="flex gap-2 justify-end pt-4">
                         <Button

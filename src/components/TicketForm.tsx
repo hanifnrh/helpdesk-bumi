@@ -5,6 +5,7 @@ import { TicketFormData } from "@/types/ticket";
 import { CloudUpload } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Combobox } from "./ui/combobox";
 import { Input } from "./ui/input";
@@ -29,12 +30,13 @@ interface TicketFormProps {
     networks: { id: number; name: string; category_id?: number }[];
     priorities: { id: number; name: string; level?: number }[];
   };
+  userRole?: string;
 }
-
 export const TicketForm = ({
   onSubmit,
   loading,
   dropdownOptions,
+  userRole,
 }: TicketFormProps) => {
   const {
     register,
@@ -47,6 +49,7 @@ export const TicketForm = ({
   const [file, setFile] = useState<File | null>(null);
   const selectedCategory = watch("category");
   const selectedService = watch("services");
+  const navigate = useNavigate();
 
   // Filter subcategories based on selected category
   const filteredCategories = dropdownOptions.categories.filter(
@@ -64,6 +67,12 @@ export const TicketForm = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && !(e.target instanceof HTMLTextAreaElement)) {
+      e.preventDefault();
     }
   };
 
@@ -113,6 +122,9 @@ export const TicketForm = ({
       };
 
       await onSubmit(ticketData);
+
+      window.location.reload();
+
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -125,7 +137,7 @@ export const TicketForm = ({
 
   return (
     <div className="bg-white dmsans-regular rounded-lg shadow p-6">
-      <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmitHandler)} onKeyDown={handleKeyDown} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Branch */}
           <div className="space-y-2">

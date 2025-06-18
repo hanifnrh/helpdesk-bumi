@@ -5,6 +5,7 @@ import {
   CircleCheckBig,
   Clock4,
   FolderOpen,
+  OctagonMinus,
   TicketCheck,
 } from "lucide-react";
 
@@ -35,10 +36,11 @@ export const TicketStats = ({ tickets }: TicketStatsProps) => {
     inProgress: tickets.filter((t) => getStatusId(t) === 2).length,
     resolved: tickets.filter((t) => getStatusId(t) === 3).length,
     critical: tickets.filter((t) => getPriorityId(t) === 4).length,
+    closed: tickets.filter((t) => getStatusId(t) === 4).length,
   };
 
   return (
-    <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-6 gap-4">
       <Card className="flex items-center justify-between gap-2 p-4">
         <div className="flex flex-col">
           <div className="text-xs sm:text-base flex flex-row items-center space-y-0 pb-2 gap-2">
@@ -85,6 +87,19 @@ export const TicketStats = ({ tickets }: TicketStatsProps) => {
           </div>
         </div>
         <CircleCheckBig className="w-6 h-auto text-green-500" />
+      </Card>
+
+      <Card className="flex items-center justify-between gap-2 p-4">
+        <div className="flex flex-col">
+          <div className="text-xs sm:text-base flex flex-row items-center space-y-0 pb-2">
+            Closed
+          </div>
+
+          <div className="text-2xl text-left font-bold text-zinc-500">
+            {stats.closed}
+          </div>
+        </div>
+        <OctagonMinus className="w-6 h-auto text-zinc-500" />
       </Card>
 
       <Card className="flex items-center justify-between gap-2 p-4">

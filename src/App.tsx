@@ -6,16 +6,18 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import './App.css';
-import { HandleReset } from "./components/HandleReset";
 import { PrivateRoute } from "./components/PrivateRoute";
 import './index.css';
 import { EditProfilePage } from "./pages/EditProfile";
-import { EnterToken } from "./pages/EnterToken";
 import FAQ from "./pages/FAQ";
 import { Index } from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/Page";
+import { EnterToken } from "./pages/auth/EnterToken";
+import { EnterTokenSignUp } from "./pages/auth/EnterTokenSignUp";
+import { HandleReset } from "./pages/auth/HandleReset";
 import { ResetPassword } from "./pages/auth/ResetPassword";
+import { ResetPasswordSignUp } from "./pages/auth/ResetPasswordSignUp";
 import UserDashboard from "./pages/user/Page";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,8 @@ const App = () => (
 
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/enter-token" element={<EnterToken />} />
+            <Route path="/auth/reset-password-sign-up" element={<ResetPasswordSignUp />} />
+            <Route path="/auth/enter-token-sign-up" element={<EnterTokenSignUp />} />
             <Route path="/auth/handle-reset" element={<HandleReset />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
