@@ -69,7 +69,6 @@ export const useUsers = () => {
       const { error: reauthError } = await supabase.auth.reauthenticate();
       if (reauthError) throw reauthError;
 
-
       toast({
         title: "User Created",
         description: `${userData.name} has been added successfully. A password setup email has been sent to them.`,

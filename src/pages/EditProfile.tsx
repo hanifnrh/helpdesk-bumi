@@ -152,19 +152,6 @@ export const EditProfilePage = () => {
                             disabled={dropdownsLoading || loading}
                         />
                     </div>
-                    <div>
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-auto w-full p-2"
-                            onClick={() => handleResetPassword(profile.email, profile.name)}
-                            disabled={loading}
-                        >
-                            Reset Password
-                            <Key className="h-3 w-3" />
-                        </Button>
-                    </div>
                     <div className="flex gap-2 justify-end pt-4">
                         <Button
                             type="button"
@@ -182,6 +169,18 @@ export const EditProfilePage = () => {
                         </Button>
                     </div>
                 </form>
+                <div className='pt-10'>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-auto w-full p-2 bg-purple-200 text-purple-700 hover:bg-purple-300 hover:text-purple-800 border-purple-300 border-2"
+                        onClick={() => handleResetPassword(profile.email, profile.name)}
+                        disabled={loading}
+                    >
+                        Reset Password
+                        <Key className="h-3 w-3" />
+                    </Button>
+                </div>
             </div>
         </div>
     );
