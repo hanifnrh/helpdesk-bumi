@@ -212,12 +212,6 @@ export const UserManagement = () => {
 
             <div className="space-y-2">
               <Label htmlFor="department">Department</Label>
-              {/* <Input
-                id="department"
-                value={formData.department}
-                onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                placeholder="Enter department"
-              /> */}
               <Combobox
                 options={dropdownOptions.departments.map(d => ({
                   value: d.id.toString(), // Convert number to string for Combobox

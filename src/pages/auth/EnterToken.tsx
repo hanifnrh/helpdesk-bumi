@@ -30,7 +30,7 @@ export const EnterToken = () => {
                 title: "Token Verified",
                 description: "You can now set your new password",
             });
-            navigate('/auth/reset-password-sign-up');
+            navigate('/auth/reset-password');
         } catch (error: any) {
             toast({
                 title: "Error",

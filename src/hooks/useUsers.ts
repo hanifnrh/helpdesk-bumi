@@ -66,12 +66,9 @@ export const useUsers = () => {
         if (profileError) throw profileError;
       }
 
-      // 3. Send password reset email
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email, {
-        redirectTo: `${window.location.origin}/auth/handle-reset`
-      });
+      const { error: reauthError } = await supabase.auth.reauthenticate();
+      if (reauthError) throw reauthError;
 
-      if (resetError) throw resetError;
 
       toast({
         title: "User Created",

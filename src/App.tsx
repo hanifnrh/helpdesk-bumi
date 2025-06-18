@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/admin/Page";
 import { EnterToken } from "./pages/auth/EnterToken";
 import { EnterTokenSignUp } from "./pages/auth/EnterTokenSignUp";
 import { HandleReset } from "./pages/auth/HandleReset";
+import { HandleSignUp } from "./pages/auth/HandleSignUp";
 import { ResetPassword } from "./pages/auth/ResetPassword";
 import { ResetPasswordSignUp } from "./pages/auth/ResetPasswordSignUp";
 import UserDashboard from "./pages/user/Page";
@@ -42,9 +43,10 @@ const App = () => (
 
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/enter-token" element={<EnterToken />} />
-            <Route path="/auth/reset-password-sign-up" element={<ResetPasswordSignUp />} />
-            <Route path="/auth/enter-token-sign-up" element={<EnterTokenSignUp />} />
+            <Route path="/auth/set-password" element={<ResetPasswordSignUp />} />
+            <Route path="/auth/signup-token" element={<EnterTokenSignUp />} />
             <Route path="/auth/handle-reset" element={<HandleReset />} />
+            <Route path="/auth/handle-signup" element={<HandleSignUp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
