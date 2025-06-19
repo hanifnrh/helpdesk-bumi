@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     dropdownOptions,
     fetchTickets: fetchAllTickets,
   } = useAdminTickets();
-    const userRole = profile?.role || "admin";
+  const userRole = profile?.role || "admin";
 
   const handleStatusFilter = (status: string) => {
     setFilters((prev) => ({ ...prev, status }));
@@ -123,22 +123,56 @@ const AdminDashboard = () => {
 
   const handleStatusChange = async (ticketId: string, status: number) => {
     try {
-      setTickets(prevTickets => prevTickets.map(t =>
-        t.id === ticketId ? { ...t, status } : t
-      ));
-      setSelectedTicket(prev => prev && prev.id === ticketId ? { ...prev, status } : prev);
+      setTickets(prevTickets =>
+        prevTickets.map(t =>
+          t.id === ticketId ? { ...t, status } : t
+        )
+      );
+      setSelectedTicket(prev =>
+        prev && prev.id === ticketId ? { ...prev, status } : prev
+      );
 
-      await supabase.from("ticket").update({ status, updated_at: new Date().toISOString() }).eq("id", ticketId);
+      // Update status di Supabase
+      const { data, error } = await supabase
+        .from("ticket")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", ticketId)
+        .select("subject, profile(email)")
+        .single();
+
+      if (error) throw error;
+
+      type ProfileWithEmail = { email: string };
+      const profile = data.profile as ProfileWithEmail | ProfileWithEmail[] | null;
+
+      // Handle profile as object or array
+      let email = "";
+      if (Array.isArray(data.profile)) {
+        email = data.profile[0]?.email || "";
+      } else if (data.profile && typeof data.profile === "object") {
+        email = (data.profile as { email: string }).email;
+      }
+
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          subject: 'Status Tiket Diperbarui',
+          html: `<p>Status tiket <strong>${data.subject}</strong> sudah berubah menjadi <strong>${status}</strong>.</p>`,
+        }),
+      });
+
 
       toast({
         title: "Success",
-        description: "Ticket status updated",
+        description: "Ticket status updated & email sent",
         variant: "default",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update status",
+        description: "Failed to update status or send email",
         variant: "destructive",
       });
     }

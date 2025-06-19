@@ -32,4 +32,5 @@ export interface Ticket {
   attachment: string | null;
   assignee: number | null | { id: number; name: string };
   profile: { id: string; name: string; email: string; phone: string } | null;
+  user_id: string;
 }
