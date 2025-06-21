@@ -79,7 +79,7 @@ export function Index() {
                 </div>
                 <div className="flex flex-col justify-center items-center px-4 py-2 sm:py-8">
                     <img src="/assets/logo-bumi.png" alt="Logo Bumi Auto" className="w-60 text-center" />
-                    <h1 className="relative z-10 mx-auto w-full text-center text-2xl font-bold text-indigo-600 md:text-4xl lg:text-6xl dark:text-slate-300">
+                    <h1 className="relative z-10 mx-auto w-full text-center text-2xl font-bold text-blue-600 md:text-4xl lg:text-6xl dark:text-slate-300">
                         {"Bumi Auto Helpdesk System"
                             .split(" ")
                             .map((word, index) => (
@@ -152,7 +152,7 @@ export function Index() {
                                 </div>
 
                                 <div className="w-full flex flex-col gap-2">
-                                    <Button type="submit" className="w-full bg-indigo-600 text-white hover:bg-indigo-700 transition-all" disabled={loading}>
+                                    <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700 transition-all" disabled={loading}>
                                         {loading ? (
                                             <>
                                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -175,6 +175,10 @@ export function Index() {
                                     </>
                                 </Button>
                             </a>
+                                  <p className="text-sm text-center text-gray-500 mt-4">
+                                © 2025 ICT Bumi Auto
+                                v 1.0
+                            </p>
                         </CardContent>
                     </Card>
                 </motion.div>
