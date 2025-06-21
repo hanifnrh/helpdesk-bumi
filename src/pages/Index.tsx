@@ -176,7 +176,7 @@ export function Index() {
                                 </Button>
                             </a>
                                   <p className="text-sm text-center text-gray-500 mt-4">
-                                © 2025 ICT Bumi Auto
+                                © 2025 ICT Bumi Auto <br/>
                                 v 1.0
                             </p>
                         </CardContent>
